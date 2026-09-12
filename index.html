@@ -1,547 +1,594 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Badminton Live Broadcast Overlay (OBS)</title>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;900&family=Teko:wght@700&family=Chakra+Petch:wght@600;700;800&display=swap" rel="stylesheet">
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  
-  /* ให้พื้นหลังโปร่งใสสำหรับนำเข้า OBS Studio Browser Source */
-  body {
-    background: transparent;
-    font-family: 'Chakra Petch', 'Kanit', sans-serif;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding: 30px 40px;
-  }
-
-  /* คอนเทนเนอร์หลักของ Overlay */
-  #overlayContainer {
-    position: relative;
-    width: 660px;
-    filter: drop-shadow(0 12px 25px rgba(0, 0, 0, 0.75));
-    animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-
-  /* -------------------------------------------
-     1. Header: ชื่อรายการแข่งขัน และ โลโก้
-  ------------------------------------------- */
-  .tournament-bar {
-    background: linear-gradient(135deg, #090e17 0%, #151f30 100%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-bottom: none;
-    border-radius: 10px 10px 0 0;
-    padding: 8px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .tournament-bar::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, #f59e0b, #3b82f6, #ef4444);
-  }
-
-  .tour-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    overflow: hidden;
-  }
-
-  .tour-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    object-fit: contain;
-    background: rgba(255, 255, 255, 0.08);
-    padding: 2px;
-    flex-shrink: 0;
-  }
-
-  .tour-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: #f8fafc;
-    letter-spacing: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-  }
-
-  .tour-badge {
-    background: rgba(255, 255, 255, 0.1);
-    color: #38bdf8;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    flex-shrink: 0;
-    border: 1px solid rgba(56, 189, 248, 0.3);
-  }
-
-  /* -------------------------------------------
-     2. Main Scoreboard: ตารางผู้เล่นและคะแนน
-  ------------------------------------------- */
-  .scoreboard-body {
-    background: #090d14;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    position: relative;
-  }
-
-  /* แถวผู้เล่น */
-  .player-row {
-    display: flex;
-    align-items: stretch;
-    height: 56px;
-    position: relative;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    transition: background 0.3s;
-  }
-
-  .player-row:last-child {
-    border-bottom: none;
-  }
-
-  /* แถบสีทีมด้านซ้าย */
-  .team-stripe {
-    width: 6px;
-    flex-shrink: 0;
-  }
-  .team-a .team-stripe { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
-  .team-b .team-stripe { background: #ef4444; box-shadow: 0 0 10px #ef4444; }
-
-  /* ไฟแสดงคนเสิร์ฟ (Shuttlecock Indicator) */
-  .serve-indicator {
-    width: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.3);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
-    font-size: 18px;
-    opacity: 0;
-    transform: scale(0.7);
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .serve-indicator.active {
-    opacity: 1;
-    transform: scale(1);
-    animation: pulseServe 1.5s infinite;
-  }
-
-  @keyframes pulseServe {
-    0%, 100% { filter: drop-shadow(0 0 2px #facc15); opacity: 1; }
-    50% { filter: drop-shadow(0 0 8px #facc15); opacity: 0.8; }
-  }
-
-  /* กล่องชื่อผู้เล่นและชื่อทีม */
-  .name-block {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 14px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, transparent 100%);
-    overflow: hidden;
-  }
-
-  .player-names {
-    font-size: 12px;
-    font-weight: 600;
-    color: #94a3b8;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.2;
-  }
-
-  .team-name {
-    font-size: 17px;
-    font-weight: 900;
-    color: #ffffff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.2;
-    letter-spacing: 0.5px;
-  }
-
-  /* โซนคะแนน 3 เซต */
-  .sets-container {
-    display: flex;
-    flex-shrink: 0;
-  }
-
-  .set-box {
-    width: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Teko', sans-serif;
-    font-size: 30px;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.35);
-    background: #0f172a;
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
-    position: relative;
-    transition: all 0.2s;
-  }
-
-  /* เซตที่กำลังแข่งขัน */
-  .set-box.current-set {
-    background: #1e293b;
-    color: #ffffff;
-    font-size: 36px;
-    border-left: 2px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .team-a .set-box.current-set {
-    color: #93c5fd;
-    background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
-  }
-
-  .team-b .set-box.current-set {
-    color: #fca5a5;
-    background: linear-gradient(180deg, #881337 0%, #0f172a 100%);
-  }
-
-  /* -------------------------------------------
-     3. Status Banner: Game Point / Deuce / Match Over
-  ------------------------------------------- */
-  #statusBanner {
-    background: linear-gradient(90deg, #f59e0b, #eab308);
-    color: #000000;
-    font-weight: 900;
-    font-size: 12px;
-    letter-spacing: 3px;
-    text-align: center;
-    padding: 3px 0;
-    text-transform: uppercase;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
-    display: none;
-    border-radius: 0 0 10px 10px;
-  }
-
-  #statusBanner.active {
-    display: block;
-    animation: flashBanner 1s infinite alternate;
-  }
-
-  #statusBanner.match-over {
-    background: linear-gradient(90deg, #22c55e, #10b981);
-    color: #ffffff;
-  }
-
-  @keyframes flashBanner {
-    from { opacity: 0.9; }
-    to { opacity: 1; }
-  }
-
-  /* สถานะเชื่อมต่อมุมขวาล่าง (สำหรับมอนิเตอร์) */
-  #syncStatus {
-    position: absolute;
-    bottom: -22px;
-    right: 8px;
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.4);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #22c55e;
-  }
-  .dot.error { background: #ef4444; }
-
-  /* กล่องตั้งค่า URL ชั่วคราวกรณีเปิดบนบราวเซอร์ปกติ */
-  #configModal {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    padding: 12px 16px;
-    color: white;
-    font-size: 12px;
-    z-index: 100;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    display: none;
-  }
-  #configModal input {
-    background: #0f172a;
-    border: 1px solid #334155;
-    color: #fff;
-    padding: 4px 8px;
-    border-radius: 4px;
-    width: 260px;
-    font-size: 11px;
-    margin-top: 4px;
-  }
-  #configModal button {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 4px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 6px;
-  }
-</style>
-</head>
-<body>
-
-<div id="overlayContainer">
-  <!-- 1. Header บาร์รายการแข่งขัน -->
-  <div class="tournament-bar">
-    <div class="tour-left">
-      <img id="tourLogo" class="tour-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/%3E%3C/svg%3E" alt="Logo">
-      <span id="tourTitle" class="tour-title">BADMINTON CHAMPIONSHIP</span>
-    </div>
-    <div id="tourBadge" class="tour-badge">COURT 1</div>
-  </div>
-
-  <!-- 2. Main Scoreboard -->
-  <div class="scoreboard-body">
-    <!-- แถวทีม A (ฝั่งซ้าย/น้ำเงิน) -->
-    <div class="player-row team-a">
-      <div class="team-stripe"></div>
-      <div class="serve-indicator" id="serveA">🏸</div>
-      <div class="name-block">
-        <div class="team-name" id="nameTeamA">TEAM A</div>
-        <div class="player-names" id="namesPlayerA">PLAYER A1</div>
-      </div>
-      <div class="sets-container">
-        <div class="set-box" id="s1_a">0</div>
-        <div class="set-box" id="s2_a">0</div>
-        <div class="set-box" id="s3_a">0</div>
-      </div>
-    </div>
-
-    <!-- แถวทีม B (ฝั่งขวา/แดง) -->
-    <div class="player-row team-b">
-      <div class="team-stripe"></div>
-      <div class="serve-indicator" id="serveB">🏸</div>
-      <div class="name-block">
-        <div class="team-name" id="nameTeamB">TEAM B</div>
-        <div class="player-names" id="namesPlayerB">PLAYER B1</div>
-      </div>
-      <div class="sets-container">
-        <div class="set-box" id="s1_b">0</div>
-        <div class="set-box" id="s2_b">0</div>
-        <div class="set-box" id="s3_b">0</div>
-      </div>
-    </div>
-
-    <!-- 3. สถานะ Game Point / Deuce / Match Over -->
-    <div id="statusBanner">GAME POINT</div>
-  </div>
-
-  <!-- สถานะการเชื่อมต่อ -->
-  <div id="syncStatus">
-    <span class="dot" id="syncDot"></span>
-    <span id="syncText">Syncing...</span>
-  </div>
-</div>
-
-<!-- Modal ตั้งค่า URL สำหรับกดเปลี่ยน API URL -->
-<div id="configModal">
-  <div>⚙️ ตั้งค่า Google Apps Script URL:</div>
-  <input type="text" id="apiInput" placeholder="https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec">
-  <br>
-  <button onclick="saveApiUrl()">บันทึก & รีโหลด</button>
-  <button onclick="closeConfig()" style="background:#475569;">ปิด</button>
-</div>
-
-<script>
-(function() {
-  // ดึง URL ของ Google Apps Script จาก URL Query Parameter (?api=...) หรือ localStorage
-  var urlParams = new URLSearchParams(window.location.search);
-  var apiUrl = urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
-
-  // แสดงกล่องตั้งค่าหากกดคีย์ลัด Alt + S หรือกดคลิก 3 ครั้งที่บอร์ด
-  window.addEventListener('keydown', function(e) {
-    if (e.altKey && (e.key === 's' || e.key === 'S')) {
-      document.getElementById('configModal').style.display = 'block';
-      document.getElementById('apiInput').value = apiUrl;
-    }
-  });
-
-  var clickCount = 0;
-  document.getElementById('overlayContainer').addEventListener('click', function() {
-    clickCount++;
-    if (clickCount >= 3) {
-      document.getElementById('configModal').style.display = 'block';
-      document.getElementById('apiInput').value = apiUrl;
-      clickCount = 0;
-    }
-  });
-
-  window.saveApiUrl = function() {
-    var val = document.getElementById('apiInput').value.trim();
-    if (val) {
-      localStorage.setItem('badminton_api_url', val);
-      apiUrl = val;
-      document.getElementById('configModal').style.display = 'none';
-      fetchData();
-    }
-  };
-
-  window.closeConfig = function() {
-    document.getElementById('configModal').style.display = 'none';
-  };
-
-  // โพลลิ่งข้อมูลทุก 1 วินาที
-  var isFetching = false;
-
-  function renderData(d) {
-    // 1. Header
-    document.getElementById('tourTitle').textContent = d.tournament_name || 'BADMINTON CHAMPIONSHIP';
-    
-    var badgeText = [];
-    if (d.court) badgeText.push(d.court);
-    if (d.match_type) badgeText.push(d.match_type);
-    document.getElementById('tourBadge').textContent = badgeText.join(' • ') || 'COURT 1';
-
-    if (d.tournament_logo) {
-      document.getElementById('tourLogo').src = d.tournament_logo;
-      document.getElementById('tourLogo').style.display = 'block';
-    } else {
-      document.getElementById('tourLogo').style.display = 'none';
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badminton Live Broadcast Overlay (OBS)</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;900&family=Teko:wght@700&family=Chakra+Petch:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    // 2. ชื่อทีมและนักกีฬา
-    document.getElementById('nameTeamA').textContent = d.team_a_name || 'TEAM A';
-    document.getElementById('nameTeamB').textContent = d.team_b_name || 'TEAM B';
-
-    var playersA = d.player_a1 || '';
-    if (d.match_mode === 'doubles' && d.player_a2) playersA += ' / ' + d.player_a2;
-    document.getElementById('namesPlayerA').textContent = playersA;
-
-    var playersB = d.player_b1 || '';
-    if (d.match_mode === 'doubles' && d.player_b2) playersB += ' / ' + d.player_b2;
-    document.getElementById('namesPlayerB').textContent = playersB;
-
-    // 3. ฝั่งเสิร์ฟ
-    var serveA = document.getElementById('serveA');
-    var serveB = document.getElementById('serveB');
-    if (d.serving_side === 'L') {
-      serveA.classList.add('active');
-      serveB.classList.remove('active');
-    } else if (d.serving_side === 'R') {
-      serveB.classList.add('active');
-      serveA.classList.remove('active');
-    } else {
-      serveA.classList.remove('active');
-      serveB.classList.remove('active');
+    /* ให้พื้นหลังโปร่งใสสำหรับนำเข้า OBS Studio Browser Source */
+    body {
+      background: transparent;
+      font-family: 'Chakra Petch', 'Kanit', sans-serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+      padding: 30px 40px;
     }
 
-    // 4. คะแนน 3 เซต
-    var activeSet = Number(d.active_set) || 1;
-    var isMatchOver = (d.status_banner === 'MATCH OVER');
+    /* คอนเทนเนอร์หลักของ Overlay */
+    #overlayContainer {
+      position: relative;
+      width: 660px;
+      filter: drop-shadow(0 12px 25px rgba(0, 0, 0, 0.75));
+      animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-    for (var i = 1; i <= 3; i++) {
-      var boxA = document.getElementById('s' + i + '_a');
-      var boxB = document.getElementById('s' + i + '_b');
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.98);
+      }
 
-      if (i < activeSet) {
-        // เซตที่ผ่านไปแล้ว
-        boxA.textContent = d['s' + i + '_a'];
-        boxB.textContent = d['s' + i + '_b'];
-        boxA.className = 'set-box';
-        boxB.className = 'set-box';
-      } else if (i === activeSet && !isMatchOver) {
-        // เซตปัจจุบัน
-        boxA.textContent = d.score_a;
-        boxB.textContent = d.score_b;
-        boxA.className = 'set-box current-set';
-        boxB.className = 'set-box current-set';
-      } else if (i === activeSet && isMatchOver) {
-        // จบแมตช์แล้ว
-        boxA.textContent = d['s' + i + '_a'] || d.score_a;
-        boxB.textContent = d['s' + i + '_b'] || d.score_b;
-        boxA.className = 'set-box';
-        boxB.className = 'set-box';
-      } else {
-        // เซตที่ยังไม่แข่ง
-        boxA.textContent = '-';
-        boxB.textContent = '-';
-        boxA.className = 'set-box';
-        boxB.className = 'set-box';
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
     }
 
-    // 5. แถบสถานะ
-    var banner = document.getElementById('statusBanner');
-    if (d.status_banner && d.status_banner !== 'NONE') {
-      banner.textContent = d.status_banner;
-      banner.className = 'active' + (d.status_banner === 'MATCH OVER' ? ' match-over' : '');
-    } else {
-      banner.className = '';
+    /* -------------------------------------------
+     1. Header: ชื่อรายการแข่งขัน และ โลโก้
+  ------------------------------------------- */
+    .tournament-bar {
+      background: linear-gradient(135deg, #090e17 0%, #151f30 100%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-bottom: none;
+      border-radius: 10px 10px 0 0;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
     }
-  }
 
-  function fetchData() {
-    if (!apiUrl) {
-      document.getElementById('syncText').textContent = 'กรุณาใส่ API URL (กด Alt+S)';
-      document.getElementById('syncDot').className = 'dot error';
-      return;
+    .tournament-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #f59e0b, #3b82f6, #ef4444);
     }
 
-    if (isFetching) return;
-    isFetching = true;
+    .tour-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+    }
 
-    var fetchUrl = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=getLive&t=' + Date.now();
+    .tour-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px;
+      flex-shrink: 0;
+    }
 
-    fetch(fetchUrl)
-      .then(function(res) { return res.json(); })
-      .then(function(json) {
-        isFetching = false;
-        if (json.success && json.data) {
-          renderData(json.data);
-          document.getElementById('syncText').textContent = 'Live Connected';
-          document.getElementById('syncDot').className = 'dot';
-        } else {
-          document.getElementById('syncDot').className = 'dot error';
+    .tour-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+    }
+
+    .tour-badge {
+      background: rgba(255, 255, 255, 0.1);
+      color: #38bdf8;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      flex-shrink: 0;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    /* -------------------------------------------
+     2. Main Scoreboard: ตารางผู้เล่นและคะแนน
+  ------------------------------------------- */
+    .scoreboard-body {
+      background: #090d14;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+
+    /* แถวผู้เล่น */
+    .player-row {
+      display: flex;
+      align-items: stretch;
+      height: 56px;
+      position: relative;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      transition: background 0.3s;
+    }
+
+    .player-row:last-child {
+      border-bottom: none;
+    }
+
+    /* แถบสีทีมด้านซ้าย */
+    .team-stripe {
+      width: 6px;
+      flex-shrink: 0;
+    }
+
+    .team-a .team-stripe {
+      background: #3b82f6;
+      box-shadow: 0 0 10px #3b82f6;
+    }
+
+    .team-b .team-stripe {
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+    }
+
+    /* ไฟแสดงคนเสิร์ฟ (Shuttlecock Indicator) */
+    .serve-indicator {
+      width: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 18px;
+      opacity: 0;
+      transform: scale(0.7);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .serve-indicator.active {
+      opacity: 1;
+      transform: scale(1);
+      animation: pulseServe 1.5s infinite;
+    }
+
+    @keyframes pulseServe {
+
+      0%,
+      100% {
+        filter: drop-shadow(0 0 2px #facc15);
+        opacity: 1;
+      }
+
+      50% {
+        filter: drop-shadow(0 0 8px #facc15);
+        opacity: 0.8;
+      }
+    }
+
+    /* กล่องชื่อผู้เล่นและชื่อทีม */
+    .name-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 14px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+      overflow: hidden;
+    }
+
+    .player-names {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+
+    .team-name {
+      font-size: 17px;
+      font-weight: 900;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+      letter-spacing: 0.5px;
+    }
+
+    /* โซนคะแนน 3 เซต */
+    .sets-container {
+      display: flex;
+      flex-shrink: 0;
+    }
+
+    .set-box {
+      width: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Teko', sans-serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.35);
+      background: #0f172a;
+      border-left: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    /* เซตที่กำลังแข่งขัน */
+    .set-box.current-set {
+      background: #1e293b;
+      color: #ffffff;
+      font-size: 36px;
+      border-left: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .team-a .set-box.current-set {
+      color: #93c5fd;
+      background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
+    }
+
+    .team-b .set-box.current-set {
+      color: #fca5a5;
+      background: linear-gradient(180deg, #881337 0%, #0f172a 100%);
+    }
+
+    /* -------------------------------------------
+     3. Status Banner: Game Point / Deuce / Match Over
+  ------------------------------------------- */
+    #statusBanner {
+      background: linear-gradient(90deg, #f59e0b, #eab308);
+      color: #000000;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-align: center;
+      padding: 3px 0;
+      text-transform: uppercase;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      display: none;
+      border-radius: 0 0 10px 10px;
+    }
+
+    #statusBanner.active {
+      display: block;
+      animation: flashBanner 1s infinite alternate;
+    }
+
+    #statusBanner.match-over {
+      background: linear-gradient(90deg, #22c55e, #10b981);
+      color: #ffffff;
+    }
+
+    @keyframes flashBanner {
+      from {
+        opacity: 0.9;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* สถานะเชื่อมต่อมุมขวาล่าง */
+    #syncStatus {
+      position: absolute;
+      bottom: -22px;
+      right: 8px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+
+    .dot.error {
+      background: #ef4444;
+    }
+
+    /* Modal ตั้งค่า URL */
+    #configModal {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: white;
+      font-size: 12px;
+      z-index: 100;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: none;
+    }
+
+    #configModal input {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      width: 260px;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    #configModal button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="overlayContainer">
+    <!-- 1. Header บาร์รายการแข่งขัน -->
+    <div class="tournament-bar">
+      <div class="tour-left">
+        <img id="tourLogo" class="tour-logo"
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/%3E%3C/svg%3E"
+          alt="Logo">
+        <span id="tourTitle" class="tour-title">BADMINTON CHAMPIONSHIP</span>
+      </div>
+      <div id="tourBadge" class="tour-badge">COURT 1</div>
+    </div>
+
+    <!-- 2. Main Scoreboard -->
+    <div class="scoreboard-body">
+      <!-- แถวทีม A (ฝั่งซ้าย/น้ำเงิน) -->
+      <div class="player-row team-a">
+        <div class="team-stripe"></div>
+        <div class="serve-indicator" id="serveA">🏸</div>
+        <div class="name-block">
+          <div class="team-name" id="nameTeamA">TEAM A</div>
+          <div class="player-names" id="namesPlayerA">PLAYER A1</div>
+        </div>
+        <div class="sets-container">
+          <div class="set-box" id="s1_a">0</div>
+          <div class="set-box" id="s2_a">0</div>
+          <div class="set-box" id="s3_a">0</div>
+        </div>
+      </div>
+
+      <!-- แถวทีม B (ฝั่งขวา/แดง) -->
+      <div class="player-row team-b">
+        <div class="team-stripe"></div>
+        <div class="serve-indicator" id="serveB">🏸</div>
+        <div class="name-block">
+          <div class="team-name" id="nameTeamB">TEAM B</div>
+          <div class="player-names" id="namesPlayerB">PLAYER B1</div>
+        </div>
+        <div class="sets-container">
+          <div class="set-box" id="s1_b">0</div>
+          <div class="set-box" id="s2_b">0</div>
+          <div class="set-box" id="s3_b">0</div>
+        </div>
+      </div>
+
+      <!-- 3. สถานะ Game Point / Deuce / Match Over -->
+      <div id="statusBanner">GAME POINT</div>
+    </div>
+
+    <!-- สถานะการเชื่อมต่อ -->
+    <div id="syncStatus">
+      <span class="dot" id="syncDot"></span>
+      <span id="syncText">Syncing...</span>
+    </div>
+  </div>
+
+  <!-- Modal ตั้งค่า URL สำหรับกดเปลี่ยน API URL -->
+  <div id="configModal">
+    <div>⚙️ ตั้งค่า Google Apps Script URL:</div>
+    <input type="text" id="apiInput" placeholder="https://script.google.com/macros/s/.../exec">
+    <br>
+    <button onclick="saveApiUrl()">บันทึก & รีโหลด</button>
+    <button onclick="closeConfig()" style="background:#475569;">ปิด</button>
+  </div>
+
+  <script>
+    // =========================================================================
+    // ⚙️ ฟิก Google Apps Script Web App URL ไว้ที่นี่ได้เลย (ไม่ต้องคอยใส่ ?api=)
+    // =========================================================================
+    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec"; // ใส่ URL เช่น "https://script.google.com/macros/s/AKfycb.../exec"
+
+    (function () {
+      var urlParams = new URLSearchParams(window.location.search);
+      var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
+
+      // แสดงกล่องตั้งค่าหากกดคีย์ลัด Alt + S หรือกดคลิก 3 ครั้งที่บอร์ด
+      window.addEventListener('keydown', function (e) {
+        if (e.altKey && (e.key === 's' || e.key === 'S')) {
+          document.getElementById('configModal').style.display = 'block';
+          document.getElementById('apiInput').value = apiUrl;
         }
-      })
-      .catch(function(err) {
-        isFetching = false;
-        document.getElementById('syncDot').className = 'dot error';
-        document.getElementById('syncText').textContent = 'Sync Error';
       });
-  }
 
-  // Initial Fetch & Interval
-  fetchData();
-  setInterval(fetchData, 1000);
-})();
-</script>
+      var clickCount = 0;
+      document.getElementById('overlayContainer').addEventListener('click', function () {
+        clickCount++;
+        if (clickCount >= 3) {
+          document.getElementById('configModal').style.display = 'block';
+          document.getElementById('apiInput').value = apiUrl;
+          clickCount = 0;
+        }
+      });
+
+      window.saveApiUrl = function () {
+        var val = document.getElementById('apiInput').value.trim();
+        if (val) {
+          localStorage.setItem('badminton_api_url', val);
+          apiUrl = val;
+          document.getElementById('configModal').style.display = 'none';
+          fetchData();
+        }
+      };
+
+      window.closeConfig = function () {
+        document.getElementById('configModal').style.display = 'none';
+      };
+
+      var isFetching = false;
+
+      function renderData(d) {
+        // 1. Header
+        document.getElementById('tourTitle').textContent = d.tournament_name || 'BADMINTON CHAMPIONSHIP';
+
+        var badgeText = [];
+        if (d.court) badgeText.push(d.court);
+        if (d.match_type) badgeText.push(d.match_type);
+        if (d.points_mode) badgeText.push(d.points_mode + 'P');
+        document.getElementById('tourBadge').textContent = badgeText.join(' • ') || 'COURT 1';
+
+        if (d.tournament_logo) {
+          document.getElementById('tourLogo').src = d.tournament_logo;
+          document.getElementById('tourLogo').style.display = 'block';
+        } else {
+          document.getElementById('tourLogo').style.display = 'none';
+        }
+
+        // 2. ชื่อทีมและนักกีฬา
+        document.getElementById('nameTeamA').textContent = d.team_a_name || 'TEAM A';
+        document.getElementById('nameTeamB').textContent = d.team_b_name || 'TEAM B';
+
+        var playersA = d.player_a1 || '';
+        if (d.match_mode === 'doubles' && d.player_a2) playersA += ' / ' + d.player_a2;
+        document.getElementById('namesPlayerA').textContent = playersA;
+
+        var playersB = d.player_b1 || '';
+        if (d.match_mode === 'doubles' && d.player_b2) playersB += ' / ' + d.player_b2;
+        document.getElementById('namesPlayerB').textContent = playersB;
+
+        // 3. ฝั่งเสิร์ฟ
+        var serveA = document.getElementById('serveA');
+        var serveB = document.getElementById('serveB');
+        if (d.serving_side === 'L') {
+          serveA.classList.add('active');
+          serveB.classList.remove('active');
+        } else if (d.serving_side === 'R') {
+          serveB.classList.add('active');
+          serveA.classList.remove('active');
+        } else {
+          serveA.classList.remove('active');
+          serveB.classList.remove('active');
+        }
+
+        // 4. คะแนน 3 เซต
+        var activeSet = Number(d.active_set) || 1;
+        var isMatchOver = (d.status_banner === 'MATCH OVER');
+
+        for (var i = 1; i <= 3; i++) {
+          var boxA = document.getElementById('s' + i + '_a');
+          var boxB = document.getElementById('s' + i + '_b');
+
+          if (i < activeSet) {
+            boxA.textContent = d['s' + i + '_a'];
+            boxB.textContent = d['s' + i + '_b'];
+            boxA.className = 'set-box';
+            boxB.className = 'set-box';
+          } else if (i === activeSet && !isMatchOver) {
+            boxA.textContent = d.score_a;
+            boxB.textContent = d.score_b;
+            boxA.className = 'set-box current-set';
+            boxB.className = 'set-box current-set';
+          } else if (i === activeSet && isMatchOver) {
+            boxA.textContent = d['s' + i + '_a'] || d.score_a;
+            boxB.textContent = d['s' + i + '_b'] || d.score_b;
+            boxA.className = 'set-box';
+            boxB.className = 'set-box';
+          } else {
+            boxA.textContent = '-';
+            boxB.textContent = '-';
+            boxA.className = 'set-box';
+            boxB.className = 'set-box';
+          }
+        }
+
+        // 5. แถบสถานะ
+        var banner = document.getElementById('statusBanner');
+        if (d.status_banner && d.status_banner !== 'NONE') {
+          banner.textContent = d.status_banner;
+          banner.className = 'active' + (d.status_banner === 'MATCH OVER' ? ' match-over' : '');
+        } else {
+          banner.className = '';
+        }
+      }
+
+      function fetchData() {
+        if (!apiUrl) {
+          document.getElementById('syncText').textContent = 'กรุณาใส่ API URL (กด Alt+S)';
+          document.getElementById('syncDot').className = 'dot error';
+          return;
+        }
+
+        if (isFetching) return;
+        isFetching = true;
+
+        var fetchUrl = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=getLive&t=' + Date.now();
+
+        fetch(fetchUrl)
+          .then(function (res) { return res.json(); })
+          .then(function (json) {
+            isFetching = false;
+            if (json.success && json.data) {
+              renderData(json.data);
+              document.getElementById('syncText').textContent = 'Live Connected';
+              document.getElementById('syncDot').className = 'dot';
+            } else {
+              document.getElementById('syncDot').className = 'dot error';
+            }
+          })
+          .catch(function (err) {
+            isFetching = false;
+            document.getElementById('syncDot').className = 'dot error';
+            document.getElementById('syncText').textContent = 'Sync Error';
+          });
+      }
+
+      fetchData();
+      setInterval(fetchData, 1000);
+    })();
+  </script>
 
 </body>
+
 </html>

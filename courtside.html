@@ -1,337 +1,390 @@
 <!DOCTYPE html>
 <html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Badminton Courtside Display (Stadium Big Screen)</title>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&family=Teko:wght@700&family=Chakra+Petch:wght@700;800;900&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  
-  body {
-    background: #06090e;
-    color: #ffffff;
-    font-family: 'Chakra Petch', 'Kanit', sans-serif;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding: 24px 32px;
-    user-select: none;
-  }
 
-  /* -------------------------------------------
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badminton Courtside Display (Stadium Big Screen)</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&family=Teko:wght@700&family=Chakra+Petch:wght@700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #06090e;
+      color: #ffffff;
+      font-family: 'Chakra Petch', 'Kanit', sans-serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 32px;
+      user-select: none;
+    }
+
+    /* -------------------------------------------
      1. Header: ชื่อรายการ และ ข้อมูลคอร์ท
   ------------------------------------------- */
-  .stadium-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(135deg, #0d1527 0%, #161e31 100%);
-    border: 2px solid rgba(255, 255, 255, 0.15);
-    border-radius: 16px;
-    padding: 14px 28px;
-    margin-bottom: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-    flex-shrink: 0;
-  }
+    .stadium-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #0d1527 0%, #161e31 100%);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 14px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      flex-shrink: 0;
+    }
 
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
 
-  .tournament-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    object-fit: contain;
-    background: rgba(255, 255, 255, 0.08);
-    padding: 4px;
-  }
+    .tournament-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 4px;
+    }
 
-  .tournament-name {
-    font-size: 26px;
-    font-weight: 900;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    background: linear-gradient(90deg, #ffffff, #93c5fd);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+    .tournament-name {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #ffffff, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-  .badge-court {
-    background: #2563eb;
-    color: #ffffff;
-    font-size: 18px;
-    font-weight: 800;
-    padding: 6px 16px;
-    border-radius: 8px;
-    letter-spacing: 1px;
-    box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
-  }
+    .badge-court {
+      background: #2563eb;
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 800;
+      padding: 6px 16px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+    }
 
-  .badge-match {
-    background: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-    font-size: 18px;
-    font-weight: 700;
-    padding: 6px 16px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
+    .badge-pts {
+      background: #f59e0b;
+      color: #000;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
 
-  /* -------------------------------------------
+    .badge-match {
+      background: rgba(255, 255, 255, 0.1);
+      color: #e2e8f0;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 6px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    /* -------------------------------------------
      2. Big Scoreboard: 2 ฝั่ง ซ้าย-ขวา
   ------------------------------------------- */
-  .scoreboard-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    flex: 1;
-    min-height: 0;
-  }
+    .scoreboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      flex: 1;
+      min-height: 0;
+    }
 
-  .team-card {
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
-    padding: 24px;
-  }
+    .team-card {
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+      padding: 24px;
+    }
 
-  /* ธีมสีทีม */
-  .card-team-a {
-    background: radial-gradient(circle at top left, #1e3a8a 0%, #0c1322 75%);
-    border-color: rgba(59, 130, 246, 0.4);
-  }
-  .card-team-b {
-    background: radial-gradient(circle at top right, #881337 0%, #1f0c13 75%);
-    border-color: rgba(239, 68, 68, 0.4);
-  }
+    /* ธีมสีทีม */
+    .card-team-a {
+      background: radial-gradient(circle at top left, #1e3a8a 0%, #0c1322 75%);
+      border-color: rgba(59, 130, 246, 0.4);
+    }
 
-  /* ส่วนหัวของทีม (ชื่อทีม + ชื่อนักกีฬา + ไฟเสิร์ฟ) */
-  .team-info-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 16px;
-    flex-shrink: 0;
-  }
+    .card-team-b {
+      background: radial-gradient(circle at top right, #881337 0%, #1f0c13 75%);
+      border-color: rgba(239, 68, 68, 0.4);
+    }
 
-  .team-names-block {
-    flex: 1;
-    overflow: hidden;
-  }
+    /* ส่วนหัวของทีม (ชื่อทีม + ชื่อนักกีฬา + ไฟเสิร์ฟ) */
+    .team-info-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 16px;
+      flex-shrink: 0;
+    }
 
-  .team-title {
-    font-size: 32px;
-    font-weight: 900;
-    letter-spacing: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-  }
-  .card-team-a .team-title { color: #60a5fa; }
-  .card-team-b .team-title { color: #f87171; }
+    .team-names-block {
+      flex: 1;
+      overflow: hidden;
+    }
 
-  .players-subtitle {
-    font-size: 20px;
-    font-weight: 600;
-    color: #cbd5e1;
-    margin-top: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+    .team-title {
+      font-size: 32px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+    }
 
-  /* ไฟเสิร์ฟขนาดใหญ่ */
-  .serve-badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid #eab308;
-    color: #facc15;
-    padding: 6px 14px;
-    border-radius: 30px;
-    font-size: 16px;
-    font-weight: 800;
-    opacity: 0;
-    transform: scale(0.8);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
+    .card-team-a .team-title {
+      color: #60a5fa;
+    }
 
-  .serve-badge.active {
-    opacity: 1;
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
-    animation: pulseServe 1.2s infinite;
-  }
+    .card-team-b .team-title {
+      color: #f87171;
+    }
 
-  @keyframes pulseServe {
-    0%, 100% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); }
-    50% { box-shadow: 0 0 30px rgba(250, 204, 21, 0.9); }
-  }
+    .players-subtitle {
+      font-size: 20px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  /* ตัวเลขคะแนนยักษ์ (Big Digital Number) */
-  .score-giant-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 0;
-  }
+    /* ไฟเสิร์ฟขนาดใหญ่ */
+    .serve-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid #eab308;
+      color: #facc15;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 800;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
 
-  .score-giant {
-    font-family: 'Teko', sans-serif;
-    font-size: 240px;
-    font-weight: 700;
-    line-height: 0.85;
-    letter-spacing: -2px;
-    text-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
-  }
-  .card-team-a .score-giant { color: #ffffff; text-shadow: 0 0 40px rgba(59, 130, 246, 0.5); }
-  .card-team-b .score-giant { color: #ffffff; text-shadow: 0 0 40px rgba(239, 68, 68, 0.5); }
+    .serve-badge.active {
+      opacity: 1;
+      transform: scale(1);
+      box-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+      animation: pulseServe 1.2s infinite;
+    }
 
-  /* แถบคะแนนเซตย้อนหลังด้านล่าง (Set Breakdown) */
-  .sets-history-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    border-top: 2px solid rgba(255, 255, 255, 0.1);
-    padding-top: 16px;
-    flex-shrink: 0;
-  }
+    @keyframes pulseServe {
 
-  .set-pill {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 8px 12px;
-    text-align: center;
-    transition: all 0.2s;
-  }
+      0%,
+      100% {
+        box-shadow: 0 0 15px rgba(250, 204, 21, 0.4);
+      }
 
-  .set-pill.current {
-    border-color: #facc15;
-    background: rgba(250, 204, 21, 0.15);
-    box-shadow: 0 0 15px rgba(250, 204, 21, 0.2);
-  }
+      50% {
+        box-shadow: 0 0 30px rgba(250, 204, 21, 0.9);
+      }
+    }
 
-  .set-pill-label {
-    font-size: 12px;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+    /* ตัวเลขคะแนนยักษ์ (Big Digital Number) */
+    .score-giant-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+    }
 
-  .set-pill-val {
-    font-family: 'Teko', sans-serif;
-    font-size: 32px;
-    font-weight: 700;
-    color: #ffffff;
-    line-height: 1;
-    margin-top: 2px;
-  }
+    .score-giant {
+      font-family: 'Teko', sans-serif;
+      font-size: 240px;
+      font-weight: 700;
+      line-height: 0.85;
+      letter-spacing: -2px;
+      text-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+    }
 
-  /* -------------------------------------------
+    .card-team-a .score-giant {
+      color: #ffffff;
+      text-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+    }
+
+    .card-team-b .score-giant {
+      color: #ffffff;
+      text-shadow: 0 0 40px rgba(239, 68, 68, 0.5);
+    }
+
+    /* แถบคะแนนเซตย้อนหลังด้านล่าง (Set Breakdown) */
+    .sets-history-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      border-top: 2px solid rgba(255, 255, 255, 0.1);
+      padding-top: 16px;
+      flex-shrink: 0;
+    }
+
+    .set-pill {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 8px 12px;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .set-pill.current {
+      border-color: #facc15;
+      background: rgba(250, 204, 21, 0.15);
+      box-shadow: 0 0 15px rgba(250, 204, 21, 0.2);
+    }
+
+    .set-pill-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .set-pill-val {
+      font-family: 'Teko', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    /* -------------------------------------------
      3. Footer Status Banner (Deuce / Game Point / Match Over)
   ------------------------------------------- */
-  .footer-banner {
-    margin-top: 18px;
-    background: linear-gradient(90deg, #f59e0b, #eab308);
-    color: #000000;
-    font-size: 22px;
-    font-weight: 900;
-    letter-spacing: 4px;
-    text-align: center;
-    padding: 10px 0;
-    border-radius: 12px;
-    box-shadow: 0 0 25px rgba(234, 179, 8, 0.6);
-    display: none;
-    text-transform: uppercase;
-    flex-shrink: 0;
-  }
+    .footer-banner {
+      margin-top: 18px;
+      background: linear-gradient(90deg, #f59e0b, #eab308);
+      color: #000000;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      text-align: center;
+      padding: 10px 0;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(234, 179, 8, 0.6);
+      display: none;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
 
-  .footer-banner.active {
-    display: block;
-    animation: flashStadium 1s infinite alternate;
-  }
+    .footer-banner.active {
+      display: block;
+      animation: flashStadium 1s infinite alternate;
+    }
 
-  .footer-banner.match-over {
-    background: linear-gradient(90deg, #22c55e, #10b981);
-    color: #ffffff;
-    box-shadow: 0 0 30px rgba(34, 197, 94, 0.8);
-  }
+    .footer-banner.match-over {
+      background: linear-gradient(90deg, #22c55e, #10b981);
+      color: #ffffff;
+      box-shadow: 0 0 30px rgba(34, 197, 94, 0.8);
+    }
 
-  @keyframes flashStadium {
-    from { transform: scale(0.99); opacity: 0.9; }
-    to { transform: scale(1.01); opacity: 1; }
-  }
+    @keyframes flashStadium {
+      from {
+        transform: scale(0.99);
+        opacity: 0.9;
+      }
 
-  /* Modal ตั้งค่า URL */
-  #configModal {
-    position: fixed;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(15, 23, 42, 0.98);
-    border: 2px solid #3b82f6;
-    border-radius: 16px;
-    padding: 24px 32px;
-    z-index: 1000;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-    display: none;
-    text-align: center;
-    width: 480px;
-  }
-  #configModal input {
-    width: 100%;
-    background: #0f172a;
-    border: 1px solid #475569;
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-    margin: 14px 0;
-  }
-  #configModal button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 0 6px;
-  }
-</style>
+      to {
+        transform: scale(1.01);
+        opacity: 1;
+      }
+    }
+
+    /* Modal ตั้งค่า URL */
+    #configModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 23, 42, 0.98);
+      border: 2px solid #3b82f6;
+      border-radius: 16px;
+      padding: 24px 32px;
+      z-index: 1000;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+      display: none;
+      text-align: center;
+      width: 480px;
+    }
+
+    #configModal input {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin: 14px 0;
+    }
+
+    #configModal button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 0 6px;
+    }
+  </style>
 </head>
+
 <body>
 
   <!-- 1. Header บาร์บนสุด -->
   <div class="stadium-header">
     <div class="header-left">
-      <img id="tourLogo" class="tournament-logo" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/%3E%3C/svg%3E" alt="Logo">
+      <img id="tourLogo" class="tournament-logo"
+        src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2338bdf8'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5z'/%3E%3C/svg%3E"
+        alt="Logo">
       <div id="tourTitle" class="tournament-name">BADMINTON CHAMPIONSHIP</div>
     </div>
     <div class="header-right">
       <div id="courtBadge" class="badge-court">COURT 1</div>
+      <div id="ptsBadge" class="badge-pts">21 แต้ม</div>
       <div id="matchBadge" class="badge-match">ประเภทเดี่ยว</div>
     </div>
   </div>
@@ -405,158 +458,167 @@
   <!-- Modal สำหรับตั้งค่า URL -->
   <div id="configModal">
     <h3>⚙️ ตั้งค่า Google Apps Script URL</h3>
-    <input type="text" id="apiInput" placeholder="https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec">
+    <input type="text" id="apiInput" placeholder="https://script.google.com/macros/s/.../exec">
     <div>
       <button onclick="saveApiUrl()">บันทึก</button>
       <button onclick="closeConfig()" style="background:#475569;">ยกเลิก</button>
     </div>
   </div>
 
-<script>
-(function() {
-  var urlParams = new URLSearchParams(window.location.search);
-  var apiUrl = urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
+  <script>
+    // =========================================================================
+    // ⚙️ ฟิก Google Apps Script Web App URL ไว้ที่นี่ได้เลย (ไม่ต้องคอยใส่ ?api=)
+    // =========================================================================
+    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec"; // ใส่ URL เช่น "https://script.google.com/macros/s/AKfycb.../exec"
 
-  // เปิดกล่องตั้งค่าด้วย Alt + S หรือเคาะ Double Click บน Header
-  window.addEventListener('keydown', function(e) {
-    if (e.altKey && (e.key === 's' || e.key === 'S')) {
-      openConfig();
-    }
-  });
+    (function () {
+      var urlParams = new URLSearchParams(window.location.search);
+      var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
 
-  document.querySelector('.stadium-header').addEventListener('dblclick', openConfig);
-
-  function openConfig() {
-    document.getElementById('configModal').style.display = 'block';
-    document.getElementById('apiInput').value = apiUrl;
-  }
-
-  window.saveApiUrl = function() {
-    var val = document.getElementById('apiInput').value.trim();
-    if (val) {
-      localStorage.setItem('badminton_api_url', val);
-      apiUrl = val;
-      document.getElementById('configModal').style.display = 'none';
-      fetchData();
-    }
-  };
-
-  window.closeConfig = function() {
-    document.getElementById('configModal').style.display = 'none';
-  };
-
-  var isFetching = false;
-
-  function renderData(d) {
-    // 1. Header
-    document.getElementById('tourTitle').textContent = d.tournament_name || 'BADMINTON CHAMPIONSHIP';
-    document.getElementById('courtBadge').textContent = d.court || 'COURT 1';
-    document.getElementById('matchBadge').textContent = d.match_type || 'ประเภททั่วไป';
-
-    if (d.tournament_logo) {
-      document.getElementById('tourLogo').src = d.tournament_logo;
-      document.getElementById('tourLogo').style.display = 'block';
-    } else {
-      document.getElementById('tourLogo').style.display = 'none';
-    }
-
-    // 2. ชื่อทีมและผู้เล่น
-    document.getElementById('nameTeamA').textContent = d.team_a_name || 'TEAM A';
-    document.getElementById('nameTeamB').textContent = d.team_b_name || 'TEAM B';
-
-    var pA = d.player_a1 || '';
-    if (d.match_mode === 'doubles' && d.player_a2) pA += ' / ' + d.player_a2;
-    document.getElementById('playersTeamA').textContent = pA;
-
-    var pB = d.player_b1 || '';
-    if (d.match_mode === 'doubles' && d.player_b2) pB += ' / ' + d.player_b2;
-    document.getElementById('playersTeamB').textContent = pB;
-
-    // 3. ฝั่งเสิร์ฟ
-    var serveA = document.getElementById('serveBadgeA');
-    var serveB = document.getElementById('serveBadgeB');
-    if (d.serving_side === 'L') {
-      serveA.classList.add('active');
-      serveB.classList.remove('active');
-    } else if (d.serving_side === 'R') {
-      serveB.classList.add('active');
-      serveA.classList.remove('active');
-    } else {
-      serveA.classList.remove('active');
-      serveB.classList.remove('active');
-    }
-
-    // 4. ตัวเลขคะแนนยักษ์
-    document.getElementById('scoreGiantA').textContent = d.score_a;
-    document.getElementById('scoreGiantB').textContent = d.score_b;
-
-    // 5. สรุปเซตย้อนหลัง
-    var activeSet = Number(d.active_set) || 1;
-    var isMatchOver = (d.status_banner === 'MATCH OVER');
-
-    for (var i = 1; i <= 3; i++) {
-      var pillA = document.getElementById('pill_s' + i + '_a');
-      var pillB = document.getElementById('pill_s' + i + '_b');
-      var valA = document.getElementById('val_s' + i + '_a');
-      var valB = document.getElementById('val_s' + i + '_b');
-
-      if (i < activeSet) {
-        pillA.className = 'set-pill';
-        pillB.className = 'set-pill';
-        valA.textContent = d['s' + i + '_a'];
-        valB.textContent = d['s' + i + '_b'];
-      } else if (i === activeSet && !isMatchOver) {
-        pillA.className = 'set-pill current';
-        pillB.className = 'set-pill current';
-        valA.textContent = d.score_a;
-        valB.textContent = d.score_b;
-      } else if (i === activeSet && isMatchOver) {
-        pillA.className = 'set-pill';
-        pillB.className = 'set-pill';
-        valA.textContent = d['s' + i + '_a'] || d.score_a;
-        valB.textContent = d['s' + i + '_b'] || d.score_b;
-      } else {
-        pillA.className = 'set-pill';
-        pillB.className = 'set-pill';
-        valA.textContent = '-';
-        valB.textContent = '-';
-      }
-    }
-
-    // 6. แถบแจ้งเตือนล่างสุด
-    var banner = document.getElementById('footerBanner');
-    if (d.status_banner && d.status_banner !== 'NONE') {
-      banner.textContent = d.status_banner;
-      banner.className = 'footer-banner active' + (d.status_banner === 'MATCH OVER' ? ' match-over' : '');
-    } else {
-      banner.className = 'footer-banner';
-    }
-  }
-
-  function fetchData() {
-    if (!apiUrl) return;
-    if (isFetching) return;
-    isFetching = true;
-
-    var fetchUrl = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=getLive&t=' + Date.now();
-
-    fetch(fetchUrl)
-      .then(function(res) { return res.json(); })
-      .then(function(json) {
-        isFetching = false;
-        if (json.success && json.data) {
-          renderData(json.data);
+      // เปิดกล่องตั้งค่าด้วย Alt + S หรือเคาะ Double Click บน Header
+      window.addEventListener('keydown', function (e) {
+        if (e.altKey && (e.key === 's' || e.key === 'S')) {
+          openConfig();
         }
-      })
-      .catch(function(err) {
-        isFetching = false;
       });
-  }
 
-  fetchData();
-  setInterval(fetchData, 1000);
-})();
-</script>
+      document.querySelector('.stadium-header').addEventListener('dblclick', openConfig);
+
+      function openConfig() {
+        document.getElementById('configModal').style.display = 'block';
+        document.getElementById('apiInput').value = apiUrl;
+      }
+
+      window.saveApiUrl = function () {
+        var val = document.getElementById('apiInput').value.trim();
+        if (val) {
+          localStorage.setItem('badminton_api_url', val);
+          apiUrl = val;
+          document.getElementById('configModal').style.display = 'none';
+          fetchData();
+        }
+      };
+
+      window.closeConfig = function () {
+        document.getElementById('configModal').style.display = 'none';
+      };
+
+      var isFetching = false;
+
+      function renderData(d) {
+        var pts = Number(d.points_mode) === 15 ? 15 : 21;
+
+        // 1. Header
+        document.getElementById('tourTitle').textContent = d.tournament_name || 'BADMINTON CHAMPIONSHIP';
+        document.getElementById('courtBadge').textContent = d.court || 'COURT 1';
+        document.getElementById('ptsBadge').textContent = pts + ' แต้ม';
+        document.getElementById('matchBadge').textContent = d.match_type || 'ประเภททั่วไป';
+
+        if (d.tournament_logo) {
+          document.getElementById('tourLogo').src = d.tournament_logo;
+          document.getElementById('tourLogo').style.display = 'block';
+        } else {
+          document.getElementById('tourLogo').style.display = 'none';
+        }
+
+        // 2. ชื่อทีมและผู้เล่น
+        document.getElementById('nameTeamA').textContent = d.team_a_name || 'TEAM A';
+        document.getElementById('nameTeamB').textContent = d.team_b_name || 'TEAM B';
+
+        var pA = d.player_a1 || '';
+        if (d.match_mode === 'doubles' && d.player_a2) pA += ' / ' + d.player_a2;
+        document.getElementById('playersTeamA').textContent = pA;
+
+        var pB = d.player_b1 || '';
+        if (d.match_mode === 'doubles' && d.player_b2) pB += ' / ' + d.player_b2;
+        document.getElementById('playersTeamB').textContent = pB;
+
+        // 3. ฝั่งเสิร์ฟ
+        var serveA = document.getElementById('serveBadgeA');
+        var serveB = document.getElementById('serveBadgeB');
+        if (d.serving_side === 'L') {
+          serveA.classList.add('active');
+          serveB.classList.remove('active');
+        } else if (d.serving_side === 'R') {
+          serveB.classList.add('active');
+          serveA.classList.remove('active');
+        } else {
+          serveA.classList.remove('active');
+          serveB.classList.remove('active');
+        }
+
+        // 4. ตัวเลขคะแนนยักษ์
+        document.getElementById('scoreGiantA').textContent = d.score_a;
+        document.getElementById('scoreGiantB').textContent = d.score_b;
+
+        // 5. สรุปเซตย้อนหลัง
+        var activeSet = Number(d.active_set) || 1;
+        var isMatchOver = (d.status_banner === 'MATCH OVER');
+
+        for (var i = 1; i <= 3; i++) {
+          var pillA = document.getElementById('pill_s' + i + '_a');
+          var pillB = document.getElementById('pill_s' + i + '_b');
+          var valA = document.getElementById('val_s' + i + '_a');
+          var valB = document.getElementById('val_s' + i + '_b');
+
+          if (i < activeSet) {
+            pillA.className = 'set-pill';
+            pillB.className = 'set-pill';
+            valA.textContent = d['s' + i + '_a'];
+            valB.textContent = d['s' + i + '_b'];
+          } else if (i === activeSet && !isMatchOver) {
+            pillA.className = 'set-pill current';
+            pillB.className = 'set-pill current';
+            valA.textContent = d.score_a;
+            valB.textContent = d.score_b;
+          } else if (i === activeSet && isMatchOver) {
+            pillA.className = 'set-pill';
+            pillB.className = 'set-pill';
+            valA.textContent = d['s' + i + '_a'] || d.score_a;
+            valB.textContent = d['s' + i + '_b'] || d.score_b;
+          } else {
+            pillA.className = 'set-pill';
+            pillB.className = 'set-pill';
+            valA.textContent = '-';
+            valB.textContent = '-';
+          }
+        }
+
+        // 6. แถบแจ้งเตือนล่างสุด
+        var banner = document.getElementById('footerBanner');
+        if (d.status_banner && d.status_banner !== 'NONE') {
+          banner.textContent = d.status_banner;
+          banner.className = 'footer-banner active' + (d.status_banner === 'MATCH OVER' ? ' match-over' : '');
+        } else {
+          banner.className = 'footer-banner';
+        }
+      }
+
+      function fetchData() {
+        if (!apiUrl) return;
+        if (isFetching) return;
+        isFetching = true;
+
+        var fetchUrl = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=getLive&t=' + Date.now();
+
+        fetch(fetchUrl)
+          .then(function (res) { return res.json(); })
+          .then(function (json) {
+            isFetching = false;
+            if (json.success && json.data) {
+              renderData(json.data);
+            }
+          })
+          .catch(function (err) {
+            isFetching = false;
+          });
+      }
+
+      fetchData();
+      setInterval(fetchData, 1000);
+    })();
+  </script>
 
 </body>
+
 </html>

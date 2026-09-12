@@ -1,533 +1,711 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Badminton Referee Controller</title>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&family=Teko:wght@600;700&display=swap" rel="stylesheet">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Badminton Referee Controller</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700;800;900&family=Teko:wght@600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-  body {
-    background: #090d16;
-    color: #f8fafc;
-    font-family: 'Kanit', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-  }
+    body {
+      background: #090d16;
+      color: #f8fafc;
+      font-family: 'Kanit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
 
-  /* -------------------------------------------
+    /* -------------------------------------------
      Header & Top Navigation
   ------------------------------------------- */
-  .app-header {
-    background: #0f172a;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+    .app-header {
+      background: #0f172a;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-  .app-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .app-brand h1 {
-    font-size: 16px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    color: #38bdf8;
-  }
+    .app-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  .sync-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.06);
-    color: #94a3b8;
-  }
-  .sync-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #22c55e;
-  }
-  .sync-dot.offline { background: #ef4444; }
+    .app-brand h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #38bdf8;
+    }
 
-  /* -------------------------------------------
+    .sync-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #94a3b8;
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+
+    .sync-dot.offline {
+      background: #ef4444;
+    }
+
+    /* -------------------------------------------
      Tab Bar Navigation
   ------------------------------------------- */
-  .tab-bar {
-    display: flex;
-    background: #1e293b;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    position: sticky;
-    top: 53px;
-    z-index: 99;
-  }
+    .tab-bar {
+      display: flex;
+      background: #1e293b;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 53px;
+      z-index: 99;
+    }
 
-  .tab-btn {
-    flex: 1;
-    padding: 12px 0;
-    text-align: center;
-    background: none;
-    border: none;
-    color: #94a3b8;
-    font-family: 'Kanit', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-bottom: 3px solid transparent;
-  }
+    .tab-btn {
+      flex: 1;
+      padding: 12px 0;
+      text-align: center;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-family: 'Kanit', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 3px solid transparent;
+    }
 
-  .tab-btn.active {
-    color: #38bdf8;
-    border-bottom-color: #38bdf8;
-    background: rgba(56, 189, 248, 0.05);
-  }
+    .tab-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.05);
+    }
 
-  /* -------------------------------------------
+    /* -------------------------------------------
      Container & Views
   ------------------------------------------- */
-  .main-content {
-    flex: 1;
-    padding: 14px;
-    max-width: 640px;
-    margin: 0 auto;
-    width: 100%;
-  }
+    .main-content {
+      flex: 1;
+      padding: 14px;
+      max-width: 640px;
+      margin: 0 auto;
+      width: 100%;
+    }
 
-  .tab-view { display: none; }
-  .tab-view.active { display: block; animation: fadeIn 0.25s ease; }
+    .tab-view {
+      display: none;
+    }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+    .tab-view.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
 
-  /* -------------------------------------------
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* -------------------------------------------
      TAB 1: LIVE MATCH CONTROLLER
   ------------------------------------------- */
-  .match-summary-card {
-    background: #111827;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+    .match-summary-card {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-  .match-meta-title {
-    font-size: 13px;
-    color: #38bdf8;
-    font-weight: 700;
-  }
-  .match-meta-sub {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-top: 2px;
-  }
+    .match-meta-title {
+      font-size: 13px;
+      color: #38bdf8;
+      font-weight: 700;
+    }
 
-  .btn-quick-edit {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #e2e8f0;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-  }
+    .match-meta-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
 
-  /* แผงคะแนนกรรมการ (2 ฝั่ง) */
-  .referee-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
+    .btn-quick-edit {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
-  .ref-team-box {
-    border-radius: 16px;
-    padding: 14px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    border: 2px solid transparent;
-    transition: all 0.2s;
-  }
+    /* แถบเลือกโหมดแต้ม 15 / 21 */
+    .points-mode-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 6px 10px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
-  .ref-team-a {
-    background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
-    border-color: #3b82f6;
-  }
-  .ref-team-b {
-    background: linear-gradient(180deg, #881337 0%, #0f172a 100%);
-    border-color: #ef4444;
-  }
+    .points-mode-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
 
-  .ref-team-header {
-    text-align: center;
-    margin-bottom: 8px;
-  }
-  .ref-team-name {
-    font-size: 16px;
-    font-weight: 800;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .ref-player-name {
-    font-size: 11px;
-    color: #cbd5e1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+    .btn-pts-mode {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #0f172a;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'Kanit', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-  /* ปุ่มกดแต้มยักษ์ (+1 Point Button) */
-  .btn-big-point {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.35);
-    border: 2px solid rgba(255, 255, 255, 0.15);
-    border-radius: 14px;
-    color: #ffffff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 8px;
-    cursor: pointer;
-    transition: transform 0.1s, background 0.15s;
-    user-select: none;
-  }
-  .btn-big-point:active {
-    transform: scale(0.96);
-    background: rgba(255, 255, 255, 0.1);
-  }
+    .btn-pts-mode.active {
+      background: #f59e0b;
+      color: #000;
+      border-color: #f59e0b;
+      font-weight: 800;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    }
 
-  .big-score-num {
-    font-family: 'Teko', sans-serif;
-    font-size: 72px;
-    font-weight: 700;
-    line-height: 1;
-  }
-  .big-score-label {
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin-top: 4px;
-    color: #facc15;
-  }
+    /* แผงคะแนนกรรมการ (2 ฝั่ง) */
+    .referee-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
 
-  /* ปุ่มเสิร์ฟ และ ปุ่ม Undo */
-  .ref-team-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-  }
-  .btn-serve-toggle {
-    flex: 1;
-    padding: 8px 4px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(0, 0, 0, 0.3);
-    color: #94a3b8;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .btn-serve-toggle.active {
-    background: #facc15;
-    color: #000000;
-    border-color: #eab308;
-    font-weight: 800;
-  }
+    .ref-team-box {
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
 
-  .btn-undo-mini {
-    width: 38px;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    background: rgba(0, 0, 0, 0.3);
-    color: #fca5a5;
-    font-size: 13px;
-    font-weight: 800;
-    cursor: pointer;
-  }
-  .btn-undo-mini:active { transform: scale(0.92); }
+    .ref-team-a {
+      background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
+      border-color: #3b82f6;
+    }
 
-  /* เซตคะแนนปัจจุบัน & สถานะ */
-  .set-status-strip {
-    background: #1e293b;
-    border-radius: 10px;
-    padding: 10px 14px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-  }
-  .set-breakdown {
-    font-size: 13px;
-    font-weight: 600;
-    color: #cbd5e1;
-  }
-  .banner-badge {
-    background: #facc15;
-    color: #000;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 3px 8px;
-    border-radius: 4px;
-    display: none;
-    letter-spacing: 1px;
-  }
-  .banner-badge.active { display: inline-block; }
+    .ref-team-b {
+      background: linear-gradient(180deg, #881337 0%, #0f172a 100%);
+      border-color: #ef4444;
+    }
 
-  /* แผงควบคุมพิเศษ: สลับฝั่ง, รีเซ็ต, บันทึกผล */
-  .ctrl-actions-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
+    .ref-team-header {
+      text-align: center;
+      margin-bottom: 8px;
+    }
 
-  .btn-action-main {
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    font-family: 'Kanit', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: transform 0.1s;
-  }
-  .btn-action-main:active { transform: scale(0.96); }
+    .ref-team-name {
+      font-size: 16px;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  .btn-switch { background: #334155; color: #f8fafc; }
-  .btn-reset { background: #450a0a; color: #fca5a5; border: 1px solid #7f1d1d; }
-  .btn-save-result {
-    grid-column: span 2;
-    background: linear-gradient(90deg, #16a34a, #15803d);
-    color: #ffffff;
-    font-size: 16px;
-    padding: 14px;
-    box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
-  }
+    .ref-player-name {
+      font-size: 11px;
+      color: #cbd5e1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-  /* -------------------------------------------
+    /* ปุ่มกดแต้มยักษ์ (+1 Point Button) */
+    .btn-big-point {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.35);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 8px;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.15s;
+      user-select: none;
+    }
+
+    .btn-big-point:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .big-score-num {
+      font-family: 'Teko', sans-serif;
+      font-size: 72px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .big-score-label {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-top: 4px;
+      color: #facc15;
+    }
+
+    /* ปุ่มเสิร์ฟ และ ปุ่ม Undo */
+    .ref-team-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-serve-toggle {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(0, 0, 0, 0.3);
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-serve-toggle.active {
+      background: #facc15;
+      color: #000000;
+      border-color: #eab308;
+      font-weight: 800;
+    }
+
+    .btn-undo-mini {
+      width: 38px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(0, 0, 0, 0.3);
+      color: #fca5a5;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-undo-mini:active {
+      transform: scale(0.92);
+    }
+
+    /* เซตคะแนนปัจจุบัน & สถานะ */
+    .set-status-strip {
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .set-breakdown {
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .banner-badge {
+      background: #facc15;
+      color: #000;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: none;
+      letter-spacing: 1px;
+    }
+
+    .banner-badge.active {
+      display: inline-block;
+    }
+
+    /* แผงควบคุมพิเศษ: สลับฝั่ง, รีเซ็ต, บันทึกผล */
+    .ctrl-actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .btn-action-main {
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-family: 'Kanit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.1s;
+    }
+
+    .btn-action-main:active {
+      transform: scale(0.96);
+    }
+
+    .btn-switch {
+      background: #334155;
+      color: #f8fafc;
+    }
+
+    .btn-reset {
+      background: #450a0a;
+      color: #fca5a5;
+      border: 1px solid #7f1d1d;
+    }
+
+    .btn-save-result {
+      grid-column: span 2;
+      background: linear-gradient(90deg, #16a34a, #15803d);
+      color: #ffffff;
+      font-size: 16px;
+      padding: 14px;
+      box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
+    }
+
+    /* -------------------------------------------
      TAB 2: SCHEDULE (ตารางแข่งล่วงหน้า)
   ------------------------------------------- */
-  .sched-header-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .btn-add-match {
-    background: #0284c7;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-  }
+    .sched-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
 
-  .match-card {
-    background: #111827;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
+    .sched-actions-row {
+      display: flex;
+      gap: 6px;
+    }
 
-  .match-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    padding-bottom: 6px;
-  }
-  .match-id-tag {
-    background: #1e293b;
-    color: #38bdf8;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-  .match-status-tag {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
-  .status-Upcoming { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
-  .status-InProgress { background: rgba(250, 204, 21, 0.2); color: #facc15; }
-  .status-Finished { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .btn-add-match {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
-  .match-vs-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 0;
-  }
-  .vs-side { flex: 1; }
-  .vs-side.right { text-align: right; }
-  .vs-team { font-weight: 800; font-size: 14px; }
-  .vs-player { font-size: 12px; color: #94a3b8; }
-  .vs-badge { font-weight: 900; color: #64748b; font-size: 12px; margin: 0 10px; }
+    .btn-import-sheet {
+      background: #059669;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
-  .btn-load-match {
-    background: linear-gradient(90deg, #2563eb, #1d4ed8);
-    color: #ffffff;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    font-family: 'Kanit', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 4px;
-  }
-  .btn-load-match:active { transform: scale(0.98); }
+    .match-card {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
 
-  /* -------------------------------------------
+    .match-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 6px;
+    }
+
+    .match-id-tag {
+      background: #1e293b;
+      color: #38bdf8;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .match-pts-tag {
+      background: #f59e0b;
+      color: #000;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+
+    .match-status-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .status-Upcoming {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    .status-InProgress {
+      background: rgba(250, 204, 21, 0.2);
+      color: #facc15;
+    }
+
+    .status-Finished {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+    }
+
+    .match-vs-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+    }
+
+    .vs-side {
+      flex: 1;
+    }
+
+    .vs-side.right {
+      text-align: right;
+    }
+
+    .vs-team {
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .vs-player {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .vs-badge {
+      font-weight: 900;
+      color: #64748b;
+      font-size: 12px;
+      margin: 0 10px;
+    }
+
+    .btn-load-match {
+      background: linear-gradient(90deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .btn-load-match:active {
+      transform: scale(0.98);
+    }
+
+    /* -------------------------------------------
      TAB 3: HISTORY (ประวัติผลการแข่ง)
   ------------------------------------------- */
-  .history-card {
-    background: #111827;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 12px;
-  }
-  .hist-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: #94a3b8;
-    margin-bottom: 6px;
-  }
-  .hist-winner {
-    font-size: 15px;
-    font-weight: 800;
-    color: #4ade80;
-    margin-bottom: 4px;
-  }
-  .hist-score-breakdown {
-    font-size: 13px;
-    color: #cbd5e1;
-  }
+    .history-card {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
 
-  /* -------------------------------------------
+    .hist-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+
+    .hist-winner {
+      font-size: 15px;
+      font-weight: 800;
+      color: #4ade80;
+      margin-bottom: 4px;
+    }
+
+    .hist-score-breakdown {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    /* -------------------------------------------
      TAB 4: SETTINGS (ตั้งค่า)
   ------------------------------------------- */
-  .setting-group {
-    background: #111827;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 14px;
-  }
-  .setting-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #38bdf8;
-    margin-bottom: 12px;
-  }
-  .form-label {
-    font-size: 12px;
-    color: #94a3b8;
-    margin-bottom: 4px;
-    display: block;
-  }
-  .form-input {
-    width: 100%;
-    background: #090d16;
-    border: 1px solid #334155;
-    color: #f8fafc;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-family: 'Kanit', sans-serif;
-    font-size: 13px;
-    margin-bottom: 12px;
-    outline: none;
-  }
-  .form-input:focus { border-color: #38bdf8; }
+    .setting-group {
+      background: #111827;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
 
-  .btn-save-settings {
-    background: #2563eb;
-    color: white;
-    border: none;
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    font-family: 'Kanit', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-  }
+    .setting-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 12px;
+    }
 
-  /* -------------------------------------------
-     Modal Popups (เพิ่มคู่แข่ง & แก้ไขแมตช์สด)
+    .form-label {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #090d16;
+      border: 1px solid #334155;
+      color: #f8fafc;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 13px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: #38bdf8;
+    }
+
+    .btn-save-settings {
+      background: #2563eb;
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* -------------------------------------------
+     Modal Popups (เพิ่มคู่แข่ง & แก้ไขแมตช์สด & ดึงข้อมูลภายนอก)
   ------------------------------------------- */
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 16px;
-  }
-  .modal-overlay.active { display: flex; }
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
 
-  .modal-card {
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 16px;
-    width: 100%;
-    max-width: 480px;
-    padding: 20px;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-  .modal-title {
-    font-size: 16px;
-    font-weight: 800;
-    color: #38bdf8;
-    margin-bottom: 14px;
-  }
-  .modal-buttons {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-  }
-</style>
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #38bdf8;
+      margin-bottom: 14px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
+
 <body>
 
   <!-- App Header -->
@@ -560,9 +738,17 @@
       <div class="match-summary-card">
         <div>
           <div class="match-meta-title" id="liveMatchTitle">COURT 1 • ประเภทเดี่ยว มือ S</div>
-          <div class="match-meta-sub" id="liveMatchSub">Match ID: M01</div>
+          <div class="match-meta-sub" id="liveMatchSub">Match ID: M01 • 21 แต้ม</div>
         </div>
         <button class="btn-quick-edit" onclick="openEditLiveModal()">✏️ แก้ไขข้อมูล</button>
+      </div>
+
+      <!-- ตัวเลือกกติกาแต้ม 15 หรือ 21 แต้ม -->
+      <div class="points-mode-selector">
+        <span class="points-mode-label">กติกาแต้ม:</span>
+        <button class="btn-pts-mode" id="btnMode15" onclick="changePointsMode(15)">⚡ 15 แต้ม (ดิวซ์ได้ถึง 21)</button>
+        <button class="btn-pts-mode active" id="btnMode21" onclick="changePointsMode(21)">⚡ 21 แต้ม (ดิวซ์ได้ถึง
+          30)</button>
       </div>
 
       <!-- แถบแจ้งเตือนสถานะคะแนนพิเศษ -->
@@ -579,7 +765,7 @@
             <div class="ref-team-name" id="liveTeamA">TEAM A</div>
             <div class="ref-player-name" id="livePlayerA">PLAYER A1</div>
           </div>
-          
+
           <div class="btn-big-point" onclick="addScore('L')">
             <div class="big-score-num" id="liveScoreA">0</div>
             <div class="big-score-label">+1 POINT</div>
@@ -614,7 +800,8 @@
       <div class="ctrl-actions-grid">
         <button class="btn-action-main btn-switch" onclick="switchSide()">🔄 สลับฝั่งสนาม</button>
         <button class="btn-action-main btn-reset" onclick="confirmReset()">⚠️ รีเซ็ตแมตช์</button>
-        <button class="btn-action-main btn-save-result" onclick="saveMatchResult()">💾 บันทึกผลการแข่งขัน (Save Result)</button>
+        <button class="btn-action-main btn-save-result" onclick="saveMatchResult()">💾 บันทึกผลการแข่งขัน (Save
+          Result)</button>
       </div>
     </div>
 
@@ -624,7 +811,10 @@
     <div id="viewSchedule" class="tab-view">
       <div class="sched-header-bar">
         <span style="font-size:14px; font-weight:700;">คิวการแข่งขันล่วงหน้า</span>
-        <button class="btn-add-match" onclick="openAddMatchModal()">➕ เพิ่มคู่แข่งขัน</button>
+        <div class="sched-actions-row">
+          <button class="btn-import-sheet" onclick="openImportModal()">📥 ดึงข้อมูล Google Sheet</button>
+          <button class="btn-add-match" onclick="openAddMatchModal()">➕ เพิ่มคู่</button>
+        </div>
       </div>
       <div id="scheduleList">กำลังโหลดตารางแข่ง...</div>
     </div>
@@ -644,18 +834,41 @@
       <div class="setting-group">
         <div class="setting-title">🔗 เชื่อมต่อ Google Sheets API</div>
         <label class="form-label">Google Apps Script Web App URL:</label>
-        <input type="text" class="form-input" id="settingApiUrl" placeholder="https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec">
+        <input type="text" class="form-input" id="settingApiUrl"
+          placeholder="https://script.google.com/macros/s/.../exec">
         <button class="btn-save-settings" onclick="saveSettings()">บันทึกการตั้งค่า</button>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-title">📥 ตั้งค่าดึงข้อมูลนักกีฬา / ตารางแข่งภายนอก</div>
+        <label class="form-label">ลิงก์ Google Sheet รายชื่อนักกีฬา/ตารางแข่ง (URL):</label>
+        <input type="text" class="form-input" id="settingExtSheetUrl"
+          placeholder="https://docs.google.com/spreadsheets/d/.../edit">
+
+        <label class="form-label">ชื่อแท็บข้อมูล (Default: 'Data'):</label>
+        <input type="text" class="form-input" id="settingExtTabName" value="Data" placeholder="Data">
+
+        <label class="form-label">เลือกคอร์ทที่ต้องการดึง (เช่น คอร์ท 9, 9, A1 หรือเว้นว่างเพื่อดึงทั้งหมด):</label>
+        <input type="text" class="form-input" id="settingExtCourtFilter" placeholder="เช่น คอร์ท 9 หรือ 9 หรือ A1">
+
+        <label class="form-label">กติกาแต้มเริ่มต้นสำหรับคู่ที่ดึงเข้ามา:</label>
+        <select class="form-input" id="settingExtPtsMode">
+          <option value="21">21 แต้ม (มาตรฐาน)</option>
+          <option value="15">15 แต้ม</option>
+        </select>
+
+        <button class="btn-save-settings" style="background:#059669;" onclick="saveAndSyncExternalSheet()">🔄 บันทึก &
+          ดึงข้อมูลเข้าสู่ระบบทันที</button>
       </div>
 
       <div class="setting-group">
         <div class="setting-title">🏆 ข้อมูลรายการแข่งขัน</div>
         <label class="form-label">ชื่อรายการแข่งขัน (Tournament Name):</label>
         <input type="text" class="form-input" id="settingTourName" placeholder="BADMINTON CHAMPIONSHIP 2026">
-        
+
         <label class="form-label">URL โลโก้การแข่งขัน (Logo Image URL):</label>
         <input type="text" class="form-input" id="settingTourLogo" placeholder="https://example.com/logo.png">
-        
+
         <button class="btn-save-settings" onclick="saveTournamentInfo()">อัปเดตชื่อรายการ & โลโก้</button>
       </div>
     </div>
@@ -668,6 +881,11 @@
       <div class="modal-title">✏️ แก้ไขข้อมูลแมตช์ที่กำลังแข่ง</div>
       <label class="form-label">ประเภทการแข่ง:</label>
       <input type="text" class="form-input" id="editMatchType">
+      <label class="form-label">กติกาแต้ม:</label>
+      <select class="form-input" id="editPointsMode">
+        <option value="21">21 แต้ม (ดิวซ์ได้ถึง 30)</option>
+        <option value="15">15 แต้ม (ดิวซ์ได้ถึง 21)</option>
+      </select>
       <label class="form-label">คอร์ท:</label>
       <input type="text" class="form-input" id="editCourt">
       <label class="form-label">โหมด:</label>
@@ -685,10 +903,11 @@
       <label class="form-label">นักกีฬา B1 / B2:</label>
       <input type="text" class="form-input" id="editPlayerB1" placeholder="ผู้เล่น B1">
       <input type="text" class="form-input" id="editPlayerB2" placeholder="ผู้เล่น B2 (กรณีคู่)">
-      
+
       <div class="modal-buttons">
         <button class="btn-save-settings" onclick="submitLiveEdit()">บันทึก</button>
-        <button class="btn-save-settings" style="background:#475569;" onclick="closeModal('editLiveModal')">ยกเลิก</button>
+        <button class="btn-save-settings" style="background:#475569;"
+          onclick="closeModal('editLiveModal')">ยกเลิก</button>
       </div>
     </div>
   </div>
@@ -701,6 +920,11 @@
       <input type="text" class="form-input" id="newMatchId" placeholder="เช่น M04">
       <label class="form-label">ประเภทการแข่ง:</label>
       <input type="text" class="form-input" id="newMatchType" placeholder="เช่น ชายคู่ รอบแรก">
+      <label class="form-label">กติกาแต้ม:</label>
+      <select class="form-input" id="newPointsMode">
+        <option value="21">21 แต้ม (ดิวซ์ได้ถึง 30)</option>
+        <option value="15">15 แต้ม (ดิวซ์ได้ถึง 21)</option>
+      </select>
       <label class="form-label">คอร์ท:</label>
       <input type="text" class="form-input" id="newCourt" value="COURT 1">
       <label class="form-label">ทีม A:</label>
@@ -713,360 +937,503 @@
       <label class="form-label">ผู้เล่น ทีม B:</label>
       <input type="text" class="form-input" id="newPlayerB1" placeholder="ชื่อผู้เล่น 1">
       <input type="text" class="form-input" id="newPlayerB2" placeholder="ชื่อผู้เล่น 2 (ถ้ามี)">
-      
+
       <div class="modal-buttons">
         <button class="btn-save-settings" onclick="submitNewMatch()">เพิ่มคู่แข่ง</button>
-        <button class="btn-save-settings" style="background:#475569;" onclick="closeModal('addMatchModal')">ยกเลิก</button>
+        <button class="btn-save-settings" style="background:#475569;"
+          onclick="closeModal('addMatchModal')">ยกเลิก</button>
       </div>
     </div>
   </div>
 
-<script>
-var apiUrl = localStorage.getItem('badminton_api_url') || '';
-var liveData = null;
+  <!-- Modal: ดึงข้อมูลจาก Google Sheet ภายนอก -->
+  <div class="modal-overlay" id="importSheetModal">
+    <div class="modal-card">
+      <div class="modal-title">📥 ดึงข้อมูลตารางแข่ง & นักกีฬาจาก Google Sheet</div>
 
-// Tab Switcher
-function switchTab(tabId) {
-  var btns = document.querySelectorAll('.tab-btn');
-  var views = document.querySelectorAll('.tab-view');
-  btns.forEach(function(b) { b.classList.remove('active'); });
-  views.forEach(function(v) { v.classList.remove('active'); });
+      <label class="form-label">ลิงก์ Google Sheet ตารางแข่ง:</label>
+      <input type="text" class="form-input" id="modalExtSheetUrl"
+        placeholder="https://docs.google.com/spreadsheets/d/.../edit">
 
-  if (tabId === 'live') {
-    btns[0].classList.add('active');
-    document.getElementById('viewLive').classList.add('active');
-  } else if (tabId === 'schedule') {
-    btns[1].classList.add('active');
-    document.getElementById('viewSchedule').classList.add('active');
-    fetchSchedule();
-  } else if (tabId === 'history') {
-    btns[2].classList.add('active');
-    document.getElementById('viewHistory').classList.add('active');
-    fetchHistory();
-  } else if (tabId === 'settings') {
-    btns[3].classList.add('active');
-    document.getElementById('viewSettings').classList.add('active');
-    document.getElementById('settingApiUrl').value = apiUrl;
-    if (liveData) {
-      document.getElementById('settingTourName').value = liveData.tournament_name || '';
-      document.getElementById('settingTourLogo').value = liveData.tournament_logo || '';
-    }
-  }
-}
+      <label class="form-label">ชื่อแท็บ (Default: 'Data'):</label>
+      <input type="text" class="form-input" id="modalExtTabName" value="Data" placeholder="Data">
 
-// API Call Wrapper
-function apiCall(action, params) {
-  if (!apiUrl) {
-    alert('กรุณาตั้งค่า Google Apps Script API URL ในแท็บ "ตั้งค่า" ก่อนใช้งานครับ');
-    switchTab('settings');
-    return Promise.reject('No API URL');
-  }
+      <label class="form-label">เลือกคอร์ทที่ต้องการดึง (เช่น คอร์ท 9, 9 หรือ A1):</label>
+      <input type="text" class="form-input" id="modalExtCourtFilter"
+        placeholder="เช่น 9 หรือ คอร์ท 9 หรือเว้นว่างเพื่อดึงทุกคอร์ท">
 
-  var url = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=' + action + '&t=' + Date.now();
-  if (params) {
-    for (var k in params) {
-      url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
-    }
-  }
+      <label class="form-label">กติกาแต้มเริ่มต้น:</label>
+      <select class="form-input" id="modalExtPtsMode">
+        <option value="21">21 แต้ม (มาตรฐาน)</option>
+        <option value="15">15 แต้ม</option>
+      </select>
 
-  return fetch(url)
-    .then(function(res) { return res.json(); })
-    .then(function(json) {
-      if (json.success) {
-        document.getElementById('headerDot').className = 'sync-dot';
-        document.getElementById('headerSyncText').textContent = 'Online';
-        return json.data;
-      } else {
-        throw new Error(json.error || 'API Error');
-      }
-    })
-    .catch(function(err) {
-      document.getElementById('headerDot').className = 'sync-dot offline';
-      document.getElementById('headerSyncText').textContent = 'Offline';
-      throw err;
-    });
-}
+      <div class="modal-buttons">
+        <button class="btn-save-settings" style="background:#059669;" onclick="submitImportExternal()">🔄
+          ดึงข้อมูลทันที</button>
+        <button class="btn-save-settings" style="background:#475569;"
+          onclick="closeModal('importSheetModal')">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
 
-// Render Live Tab
-function renderLive(d) {
-  liveData = d;
-  document.getElementById('headerTourTitle').textContent = d.tournament_name || 'REFEREE CONTROLLER';
-  document.getElementById('liveMatchTitle').textContent = (d.court || 'COURT 1') + ' • ' + (d.match_type || 'ประเภททั่วไป');
-  document.getElementById('liveMatchSub').textContent = 'Match ID: ' + (d.match_id || '-') + ' (' + (d.match_mode === 'doubles' ? 'ประเภทคู่' : 'ประเภทเดี่ยว') + ')';
+  <script>
+    // =========================================================================
+    // ⚙️ ฟิก Google Apps Script Web App URL ไว้ที่นี่ได้เลย (ไม่ต้องคอยพิมพ์ใหม่)
+    // =========================================================================
+    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec"; // ใส่ URL เช่น "https://script.google.com/macros/s/AKfycb.../exec"
 
-  document.getElementById('liveTeamA').textContent = d.team_a_name || 'TEAM A';
-  document.getElementById('liveTeamB').textContent = d.team_b_name || 'TEAM B';
+    var urlParams = new URLSearchParams(window.location.search);
+    var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
+    var liveData = null;
 
-  var pA = d.player_a1 || '';
-  if (d.match_mode === 'doubles' && d.player_a2) pA += ' / ' + d.player_a2;
-  document.getElementById('livePlayerA').textContent = pA;
+    // Tab Switcher
+    function switchTab(tabId) {
+      var btns = document.querySelectorAll('.tab-btn');
+      var views = document.querySelectorAll('.tab-view');
+      btns.forEach(function (b) { b.classList.remove('active'); });
+      views.forEach(function (v) { v.classList.remove('active'); });
 
-  var pB = d.player_b1 || '';
-  if (d.match_mode === 'doubles' && d.player_b2) pB += ' / ' + d.player_b2;
-  document.getElementById('livePlayerB').textContent = pB;
-
-  document.getElementById('liveScoreA').textContent = d.score_a;
-  document.getElementById('liveScoreB').textContent = d.score_b;
-
-  // Serve indicators
-  var btnA = document.getElementById('btnServeA');
-  var btnB = document.getElementById('btnServeB');
-  if (d.serving_side === 'L') {
-    btnA.className = 'btn-serve-toggle active';
-    btnB.className = 'btn-serve-toggle';
-  } else if (d.serving_side === 'R') {
-    btnB.className = 'btn-serve-toggle active';
-    btnA.className = 'btn-serve-toggle';
-  } else {
-    btnA.className = 'btn-serve-toggle';
-    btnB.className = 'btn-serve-toggle';
-  }
-
-  // Set Summary
-  var setSummaryText = 'กำลังแข่ง: เซต ' + (d.active_set || 1) + ' (เซต 1: ' + d.s1_a + '-' + d.s1_b + ' | เซต 2: ' + d.s2_a + '-' + d.s2_b;
-  if (d.active_set === 3 || d.s3_a > 0 || d.s3_b > 0) {
-    setSummaryText += ' | เซต 3: ' + d.s3_a + '-' + d.s3_b;
-  }
-  setSummaryText += ')';
-  document.getElementById('liveSetSummary').textContent = setSummaryText;
-
-  // Banner
-  var badge = document.getElementById('liveBannerBadge');
-  if (d.status_banner && d.status_banner !== 'NONE') {
-    badge.textContent = d.status_banner;
-    badge.className = 'banner-badge active';
-  } else {
-    badge.className = 'banner-badge';
-  }
-}
-
-// Controller Actions
-function addScore(side) {
-  // Optimistic UI Update
-  if (liveData) {
-    if (side === 'L') liveData.score_a++; else liveData.score_b++;
-    liveData.serving_side = side;
-    renderLive(liveData);
-  }
-  apiCall('addPoint', { side: side }).then(renderLive).catch(function(){});
-}
-
-function undoScore() {
-  apiCall('undoPoint').then(renderLive).catch(function(){});
-}
-
-function setServe(side) {
-  if (liveData) {
-    liveData.serving_side = side;
-    renderLive(liveData);
-  }
-  apiCall('setServe', { side: side }).then(renderLive).catch(function(){});
-}
-
-function switchSide() {
-  apiCall('switchSide').then(renderLive).catch(function(){});
-}
-
-function confirmReset() {
-  if (confirm('คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตคะแนนแมตช์นี้เป็น 0-0 ?')) {
-    apiCall('resetMatch').then(renderLive).catch(function(){});
-  }
-}
-
-function saveMatchResult() {
-  if (confirm('ต้องการบันทึกผลการแข่งขันของแมตช์นี้ลงชีตประวัติ (MatchHistory) ใช่หรือไม่?')) {
-    apiCall('saveResult')
-      .then(function(res) {
-        alert('✅ บันทึกผลการแข่งขันเรียบร้อยแล้ว!\nผู้ชนะ: ' + res.winner + '\nผลคะแนน: ' + res.final_score);
-        fetchLive();
-      })
-      .catch(function(err) {
-        alert('เกิดข้อผิดพลาด: ' + err);
-      });
-  }
-}
-
-// Schedule Functions
-function fetchSchedule() {
-  var container = document.getElementById('scheduleList');
-  container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">กำลังโหลด...</div>';
-
-  apiCall('getSchedule')
-    .then(function(list) {
-      if (!list || list.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">ไม่มีรายการแข่งขันในตาราง</div>';
-        return;
-      }
-
-      var html = '';
-      list.forEach(function(m) {
-        var statusClass = 'status-' + m.status.replace(/\s+/g, '');
-        var pA = m.player_a1 + (m.player_a2 ? (' / ' + m.player_a2) : '');
-        var pB = m.player_b1 + (m.player_b2 ? (' / ' + m.player_b2) : '');
-
-        html += '<div class="match-card">';
-        html += '  <div class="match-card-header">';
-        html += '    <div><span class="match-id-tag">' + m.match_id + '</span> <span style="font-weight:700; font-size:12px; margin-left:6px;">' + m.match_type + ' (' + m.court + ')</span></div>';
-        html += '    <span class="match-status-tag ' + statusClass + '">' + m.status + '</span>';
-        html += '  </div>';
-        html += '  <div class="match-vs-row">';
-        html += '    <div class="vs-side"><div class="vs-team" style="color:#60a5fa;">' + m.team_a_name + '</div><div class="vs-player">' + pA + '</div></div>';
-        html += '    <div class="vs-badge">VS</div>';
-        html += '    <div class="vs-side right"><div class="vs-team" style="color:#f87171;">' + m.team_b_name + '</div><div class="vs-player">' + pB + '</div></div>';
-        html += '  </div>';
-        if (m.status !== 'Finished') {
-          html += '  <button class="btn-load-match" onclick="loadMatchToLive(\'' + m.match_id + '\')">⚡ นำเข้าขึ้นแข่ง (Load Match)</button>';
-        } else {
-          html += '  <div style="font-size:11px; color:#4ade80; text-align:center; margin-top:4px;">ผู้ชนะ: ' + m.winner + ' (' + m.final_score + ')</div>';
+      if (tabId === 'live') {
+        btns[0].classList.add('active');
+        document.getElementById('viewLive').classList.add('active');
+      } else if (tabId === 'schedule') {
+        btns[1].classList.add('active');
+        document.getElementById('viewSchedule').classList.add('active');
+        fetchSchedule();
+      } else if (tabId === 'history') {
+        btns[2].classList.add('active');
+        document.getElementById('viewHistory').classList.add('active');
+        fetchHistory();
+      } else if (tabId === 'settings') {
+        btns[3].classList.add('active');
+        document.getElementById('viewSettings').classList.add('active');
+        document.getElementById('settingApiUrl').value = apiUrl;
+        document.getElementById('settingExtSheetUrl').value = localStorage.getItem('ext_sheet_url') || '';
+        document.getElementById('settingExtTabName').value = localStorage.getItem('ext_tab_name') || 'Data';
+        document.getElementById('settingExtCourtFilter').value = localStorage.getItem('ext_court_filter') || '';
+        document.getElementById('settingExtPtsMode').value = localStorage.getItem('ext_pts_mode') || '21';
+        if (liveData) {
+          document.getElementById('settingTourName').value = liveData.tournament_name || '';
+          document.getElementById('settingTourLogo').value = liveData.tournament_logo || '';
         }
-        html += '</div>';
-      });
+      }
+    }
 
-      container.innerHTML = html;
-    })
-    .catch(function(err) {
-      container.innerHTML = '<div style="color:#f87171; text-align:center;">โหลดไม่สำเร็จ: ' + err + '</div>';
-    });
-}
+    // API Call Wrapper
+    function apiCall(action, params) {
+      if (!apiUrl) {
+        alert('กรุณาตั้งค่า Google Apps Script API URL ในแท็บ "ตั้งค่า" ก่อนใช้งานครับ');
+        switchTab('settings');
+        return Promise.reject('No API URL');
+      }
 
-function loadMatchToLive(matchId) {
-  if (confirm('ต้องการโหลดแมตช์ ' + matchId + ' เข้าสู่หน้าจอแข่งสด และรีเซ็ตคะแนนเป็น 0-0 ใช่หรือไม่?')) {
-    apiCall('loadMatch', { match_id: matchId })
-      .then(function(d) {
-        renderLive(d);
-        switchTab('live');
-      })
-      .catch(function(err) { alert('เกิดข้อผิดพลาด: ' + err); });
-  }
-}
+      var url = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=' + action + '&t=' + Date.now();
+      if (params) {
+        for (var k in params) {
+          url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }
+      }
 
-// History Functions
-function fetchHistory() {
-  var container = document.getElementById('historyList');
-  container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">กำลังโหลด...</div>';
+      return fetch(url)
+        .then(function (res) { return res.json(); })
+        .then(function (json) {
+          if (json.success) {
+            document.getElementById('headerDot').className = 'sync-dot';
+            document.getElementById('headerSyncText').textContent = 'Online';
+            return json.data;
+          } else {
+            throw new Error(json.error || 'API Error');
+          }
+        })
+        .catch(function (err) {
+          document.getElementById('headerDot').className = 'sync-dot offline';
+          document.getElementById('headerSyncText').textContent = 'Offline';
+          throw err;
+        });
+    }
 
-  apiCall('getHistory')
-    .then(function(list) {
-      if (!list || list.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">ยังไม่มีประวัติการแข่งขันที่จบแล้ว</div>';
+    // Render Live Tab
+    function renderLive(d) {
+      liveData = d;
+      var pts = Number(d.points_mode) === 15 ? 15 : 21;
+
+      document.getElementById('headerTourTitle').textContent = d.tournament_name || 'REFEREE CONTROLLER';
+      document.getElementById('liveMatchTitle').textContent = (d.court || 'COURT 1') + ' • ' + (d.match_type || 'ประเภททั่วไป');
+      document.getElementById('liveMatchSub').textContent = 'Match ID: ' + (d.match_id || '-') + ' • กติกา: ' + pts + ' แต้ม (' + (d.match_mode === 'doubles' ? 'ประเภทคู่' : 'ประเภทเดี่ยว') + ')';
+
+      // Toggle buttons highlight
+      var btn15 = document.getElementById('btnMode15');
+      var btn21 = document.getElementById('btnMode21');
+      if (pts === 15) {
+        btn15.className = 'btn-pts-mode active';
+        btn21.className = 'btn-pts-mode';
+      } else {
+        btn21.className = 'btn-pts-mode active';
+        btn15.className = 'btn-pts-mode';
+      }
+
+      document.getElementById('liveTeamA').textContent = d.team_a_name || 'TEAM A';
+      document.getElementById('liveTeamB').textContent = d.team_b_name || 'TEAM B';
+
+      var pA = d.player_a1 || '';
+      if (d.match_mode === 'doubles' && d.player_a2) pA += ' / ' + d.player_a2;
+      document.getElementById('livePlayerA').textContent = pA;
+
+      var pB = d.player_b1 || '';
+      if (d.match_mode === 'doubles' && d.player_b2) pB += ' / ' + d.player_b2;
+      document.getElementById('livePlayerB').textContent = pB;
+
+      document.getElementById('liveScoreA').textContent = d.score_a;
+      document.getElementById('liveScoreB').textContent = d.score_b;
+
+      // Serve indicators
+      var btnA = document.getElementById('btnServeA');
+      var btnB = document.getElementById('btnServeB');
+      if (d.serving_side === 'L') {
+        btnA.className = 'btn-serve-toggle active';
+        btnB.className = 'btn-serve-toggle';
+      } else if (d.serving_side === 'R') {
+        btnB.className = 'btn-serve-toggle active';
+        btnA.className = 'btn-serve-toggle';
+      } else {
+        btnA.className = 'btn-serve-toggle';
+        btnB.className = 'btn-serve-toggle';
+      }
+
+      // Set Summary
+      var setSummaryText = 'กำลังแข่ง: เซต ' + (d.active_set || 1) + ' (เซต 1: ' + d.s1_a + '-' + d.s1_b + ' | เซต 2: ' + d.s2_a + '-' + d.s2_b;
+      if (d.active_set === 3 || d.s3_a > 0 || d.s3_b > 0) {
+        setSummaryText += ' | เซต 3: ' + d.s3_a + '-' + d.s3_b;
+      }
+      setSummaryText += ')';
+      document.getElementById('liveSetSummary').textContent = setSummaryText;
+
+      // Banner
+      var badge = document.getElementById('liveBannerBadge');
+      if (d.status_banner && d.status_banner !== 'NONE') {
+        badge.textContent = d.status_banner;
+        badge.className = 'banner-badge active';
+      } else {
+        badge.className = 'banner-badge';
+      }
+    }
+
+    // Change Points Mode 15 or 21
+    function changePointsMode(pts) {
+      if (liveData && liveData.points_mode === pts) return;
+      apiCall('setPointsMode', { points_mode: pts })
+        .then(renderLive)
+        .catch(function (err) { alert('เกิดข้อผิดพลาด: ' + err); });
+    }
+
+    // Controller Actions
+    function addScore(side) {
+      if (liveData) {
+        if (side === 'L') liveData.score_a++; else liveData.score_b++;
+        liveData.serving_side = side;
+        renderLive(liveData);
+      }
+      apiCall('addPoint', { side: side }).then(renderLive).catch(function () { });
+    }
+
+    function undoScore() {
+      apiCall('undoPoint').then(renderLive).catch(function () { });
+    }
+
+    function setServe(side) {
+      if (liveData) {
+        liveData.serving_side = side;
+        renderLive(liveData);
+      }
+      apiCall('setServe', { side: side }).then(renderLive).catch(function () { });
+    }
+
+    function switchSide() {
+      apiCall('switchSide').then(renderLive).catch(function () { });
+    }
+
+    function confirmReset() {
+      if (confirm('คุณแน่ใจหรือไม่ว่าต้องการรีเซ็ตคะแนนแมตช์นี้เป็น 0-0 ?')) {
+        apiCall('resetMatch').then(renderLive).catch(function () { });
+      }
+    }
+
+    function saveMatchResult() {
+      if (confirm('ต้องการบันทึกผลการแข่งขันของแมตช์นี้ลงชีตประวัติ (MatchHistory) ใช่หรือไม่?')) {
+        apiCall('saveResult')
+          .then(function (res) {
+            alert('✅ บันทึกผลการแข่งขันเรียบร้อยแล้ว!\nผู้ชนะ: ' + res.winner + '\nผลคะแนน: ' + res.final_score);
+            fetchLive();
+          })
+          .catch(function (err) {
+            alert('เกิดข้อผิดพลาด: ' + err);
+          });
+      }
+    }
+
+    // Schedule Functions
+    function fetchSchedule() {
+      var container = document.getElementById('scheduleList');
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">กำลังโหลด...</div>';
+
+      apiCall('getSchedule')
+        .then(function (list) {
+          if (!list || list.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">ไม่มีรายการแข่งขันในตาราง (กดปุ่ม "📥 ดึงข้อมูล Google Sheet" เพื่อนำเข้ารายชื่อ)</div>';
+            return;
+          }
+
+          var html = '';
+          list.forEach(function (m) {
+            var statusClass = 'status-' + m.status.replace(/\s+/g, '');
+            var pA = m.player_a1 + (m.player_a2 ? (' / ' + m.player_a2) : '');
+            var pB = m.player_b1 + (m.player_b2 ? (' / ' + m.player_b2) : '');
+            var pts = Number(m.points_mode) === 15 ? 15 : 21;
+
+            html += '<div class="match-card">';
+            html += '  <div class="match-card-header">';
+            html += '    <div><span class="match-id-tag">' + m.match_id + '</span><span class="match-pts-tag">' + pts + ' แต้ม</span> <span style="font-weight:700; font-size:12px; margin-left:6px;">' + m.match_type + ' (' + m.court + ')</span></div>';
+            html += '    <span class="match-status-tag ' + statusClass + '">' + m.status + '</span>';
+            html += '  </div>';
+            html += '  <div class="match-vs-row">';
+            html += '    <div class="vs-side"><div class="vs-team" style="color:#60a5fa;">' + m.team_a_name + '</div><div class="vs-player">' + pA + '</div></div>';
+            html += '    <div class="vs-badge">VS</div>';
+            html += '    <div class="vs-side right"><div class="vs-team" style="color:#f87171;">' + m.team_b_name + '</div><div class="vs-player">' + pB + '</div></div>';
+            html += '  </div>';
+            if (m.status !== 'Finished') {
+              html += '  <button class="btn-load-match" onclick="loadMatchToLive(\'' + m.match_id + '\')">⚡ นำเข้าขึ้นแข่ง (Load Match)</button>';
+            } else {
+              html += '  <div style="font-size:11px; color:#4ade80; text-align:center; margin-top:4px;">ผู้ชนะ: ' + m.winner + ' (' + m.final_score + ')</div>';
+            }
+            html += '</div>';
+          });
+
+          container.innerHTML = html;
+        })
+        .catch(function (err) {
+          container.innerHTML = '<div style="color:#f87171; text-align:center;">โหลดไม่สำเร็จ: ' + err + '</div>';
+        });
+    }
+
+    function loadMatchToLive(matchId) {
+      if (confirm('ต้องการโหลดแมตช์ ' + matchId + ' เข้าสู่หน้าจอแข่งสด และรีเซ็ตคะแนนเป็น 0-0 ใช่หรือไม่?')) {
+        apiCall('loadMatch', { match_id: matchId })
+          .then(function (d) {
+            renderLive(d);
+            switchTab('live');
+          })
+          .catch(function (err) { alert('เกิดข้อผิดพลาด: ' + err); });
+      }
+    }
+
+    // History Functions
+    function fetchHistory() {
+      var container = document.getElementById('historyList');
+      container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">กำลังโหลด...</div>';
+
+      apiCall('getHistory')
+        .then(function (list) {
+          if (!list || list.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">ยังไม่มีประวัติการแข่งขันที่จบแล้ว</div>';
+            return;
+          }
+
+          var html = '';
+          list.forEach(function (h) {
+            html += '<div class="history-card">';
+            html += '  <div class="hist-header"><span>' + h.match_id + ' • ' + h.match_type + ' (' + (h.points_mode || '21 แต้ม') + ') • ' + h.court + '</span><span>' + h.timestamp + '</span></div>';
+            html += '  <div class="hist-winner">🏆 ผู้ชนะ: ' + h.winner + '</div>';
+            html += '  <div style="font-size:13px; font-weight:700; margin:4px 0;">' + h.team_a_name + ' (' + h.players_a + ') vs ' + h.team_b_name + ' (' + h.players_b + ')</div>';
+            html += '  <div class="hist-score-breakdown">ผลคะแนน: ' + h.final_score + '</div>';
+            html += '</div>';
+          });
+
+          container.innerHTML = html;
+        })
+        .catch(function (err) {
+          container.innerHTML = '<div style="color:#f87171; text-align:center;">โหลดไม่สำเร็จ: ' + err + '</div>';
+        });
+    }
+
+    // Modals
+    function openEditLiveModal() {
+      if (!liveData) return;
+      document.getElementById('editMatchType').value = liveData.match_type || '';
+      document.getElementById('editPointsMode').value = (liveData.points_mode === 15 ? 15 : 21);
+      document.getElementById('editCourt').value = liveData.court || 'COURT 1';
+      document.getElementById('editMatchMode').value = liveData.match_mode || 'singles';
+      document.getElementById('editTeamA').value = liveData.team_a_name || '';
+      document.getElementById('editPlayerA1').value = liveData.player_a1 || '';
+      document.getElementById('editPlayerA2').value = liveData.player_a2 || '';
+      document.getElementById('editTeamB').value = liveData.team_b_name || '';
+      document.getElementById('editPlayerB1').value = liveData.player_b1 || '';
+      document.getElementById('editPlayerB2').value = liveData.player_b2 || '';
+      document.getElementById('editLiveModal').classList.add('active');
+    }
+
+    function submitLiveEdit() {
+      var updateParams = {
+        match_type: document.getElementById('editMatchType').value,
+        points_mode: document.getElementById('editPointsMode').value,
+        court: document.getElementById('editCourt').value,
+        match_mode: document.getElementById('editMatchMode').value,
+        team_a_name: document.getElementById('editTeamA').value,
+        player_a1: document.getElementById('editPlayerA1').value,
+        player_a2: document.getElementById('editPlayerA2').value,
+        team_b_name: document.getElementById('editTeamB').value,
+        player_b1: document.getElementById('editPlayerB1').value,
+        player_b2: document.getElementById('editPlayerB2').value
+      };
+
+      apiCall('updateLive', updateParams)
+        .then(function (d) {
+          renderLive(d);
+          closeModal('editLiveModal');
+        })
+        .catch(function (err) { alert('เกิดข้อผิดพลาด: ' + err); });
+    }
+
+    function openAddMatchModal() {
+      document.getElementById('addMatchModal').classList.add('active');
+    }
+
+    function submitNewMatch() {
+      var newMatch = {
+        match_id: document.getElementById('newMatchId').value,
+        match_type: document.getElementById('newMatchType').value,
+        points_mode: document.getElementById('newPointsMode').value,
+        court: document.getElementById('newCourt').value,
+        team_a_name: document.getElementById('newTeamA').value,
+        player_a1: document.getElementById('newPlayerA1').value,
+        player_a2: document.getElementById('newPlayerA2').value,
+        team_b_name: document.getElementById('newTeamB').value,
+        player_b1: document.getElementById('newPlayerB1').value,
+        player_b2: document.getElementById('newPlayerB2').value
+      };
+
+      apiCall('saveScheduleMatch', newMatch)
+        .then(function () {
+          closeModal('addMatchModal');
+          fetchSchedule();
+        })
+        .catch(function (err) { alert('เกิดข้อผิดพลาด: ' + err); });
+    }
+
+    function openImportModal() {
+      document.getElementById('modalExtSheetUrl').value = localStorage.getItem('ext_sheet_url') || '';
+      document.getElementById('modalExtTabName').value = localStorage.getItem('ext_tab_name') || 'Data';
+      document.getElementById('modalExtCourtFilter').value = localStorage.getItem('ext_court_filter') || '';
+      document.getElementById('modalExtPtsMode').value = localStorage.getItem('ext_pts_mode') || '21';
+      document.getElementById('importSheetModal').classList.add('active');
+    }
+
+    function submitImportExternal() {
+      var url = document.getElementById('modalExtSheetUrl').value.trim();
+      var tab = document.getElementById('modalExtTabName').value.trim() || 'Data';
+      var court = document.getElementById('modalExtCourtFilter').value.trim();
+      var pts = document.getElementById('modalExtPtsMode').value;
+
+      if (!url) {
+        alert('กรุณาใส่ลิงก์ Google Sheet ตารางแข่ง');
         return;
       }
 
-      var html = '';
-      list.forEach(function(h) {
-        html += '<div class="history-card">';
-        html += '  <div class="hist-header"><span>' + h.match_id + ' • ' + h.match_type + ' (' + h.court + ')</span><span>' + h.timestamp + '</span></div>';
-        html += '  <div class="hist-winner">🏆 ผู้ชนะ: ' + h.winner + '</div>';
-        html += '  <div style="font-size:13px; font-weight:700; margin:4px 0;">' + h.team_a_name + ' (' + h.players_a + ') vs ' + h.team_b_name + ' (' + h.players_b + ')</div>';
-        html += '  <div class="hist-score-breakdown">ผลคะแนน: ' + h.final_score + '</div>';
-        html += '</div>';
-      });
+      localStorage.setItem('ext_sheet_url', url);
+      localStorage.setItem('ext_tab_name', tab);
+      localStorage.setItem('ext_court_filter', court);
+      localStorage.setItem('ext_pts_mode', pts);
 
-      container.innerHTML = html;
-    })
-    .catch(function(err) {
-      container.innerHTML = '<div style="color:#f87171; text-align:center;">โหลดไม่สำเร็จ: ' + err + '</div>';
-    });
-}
+      closeModal('importSheetModal');
 
-// Modals
-function openEditLiveModal() {
-  if (!liveData) return;
-  document.getElementById('editMatchType').value = liveData.match_type || '';
-  document.getElementById('editCourt').value = liveData.court || 'COURT 1';
-  document.getElementById('editMatchMode').value = liveData.match_mode || 'singles';
-  document.getElementById('editTeamA').value = liveData.team_a_name || '';
-  document.getElementById('editPlayerA1').value = liveData.player_a1 || '';
-  document.getElementById('editPlayerA2').value = liveData.player_a2 || '';
-  document.getElementById('editTeamB').value = liveData.team_b_name || '';
-  document.getElementById('editPlayerB1').value = liveData.player_b1 || '';
-  document.getElementById('editPlayerB2').value = liveData.player_b2 || '';
-  document.getElementById('editLiveModal').classList.add('active');
-}
+      var container = document.getElementById('scheduleList');
+      container.innerHTML = '<div style="text-align:center; padding:30px; color:#38bdf8;">🔄 กำลังดึงข้อมูลจาก Google Sheet...</div>';
 
-function submitLiveEdit() {
-  var updateParams = {
-    match_type: document.getElementById('editMatchType').value,
-    court: document.getElementById('editCourt').value,
-    match_mode: document.getElementById('editMatchMode').value,
-    team_a_name: document.getElementById('editTeamA').value,
-    player_a1: document.getElementById('editPlayerA1').value,
-    player_a2: document.getElementById('editPlayerA2').value,
-    team_b_name: document.getElementById('editTeamB').value,
-    player_b1: document.getElementById('editPlayerB1').value,
-    player_b2: document.getElementById('editPlayerB2').value
-  };
+      apiCall('importExternalSchedule', {
+        sheet_url: url,
+        tab_name: tab,
+        court_filter: court,
+        points_mode: pts
+      })
+        .then(function (res) {
+          alert('✅ ดึงข้อมูลสำเร็จ!\nนำเข้า: ' + res.imported_count + ' แมตช์\nคอร์ท: ' + res.court_filter + '\nแท็บ: ' + res.tab_used);
+          fetchSchedule();
+        })
+        .catch(function (err) {
+          alert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + err);
+          fetchSchedule();
+        });
+    }
 
-  apiCall('updateLive', updateParams)
-    .then(function(d) {
-      renderLive(d);
-      closeModal('editLiveModal');
-    })
-    .catch(function(err) { alert('เกิดข้อผิดพลาด: ' + err); });
-}
+    function saveAndSyncExternalSheet() {
+      var url = document.getElementById('settingExtSheetUrl').value.trim();
+      var tab = document.getElementById('settingExtTabName').value.trim() || 'Data';
+      var court = document.getElementById('settingExtCourtFilter').value.trim();
+      var pts = document.getElementById('settingExtPtsMode').value;
 
-function openAddMatchModal() {
-  document.getElementById('addMatchModal').classList.add('active');
-}
+      if (!url) {
+        alert('กรุณาใส่ลิงก์ Google Sheet');
+        return;
+      }
 
-function submitNewMatch() {
-  var newMatch = {
-    match_id: document.getElementById('newMatchId').value,
-    match_type: document.getElementById('newMatchType').value,
-    court: document.getElementById('newCourt').value,
-    team_a_name: document.getElementById('newTeamA').value,
-    player_a1: document.getElementById('newPlayerA1').value,
-    player_a2: document.getElementById('newPlayerA2').value,
-    team_b_name: document.getElementById('newTeamB').value,
-    player_b1: document.getElementById('newPlayerB1').value,
-    player_b2: document.getElementById('newPlayerB2').value
-  };
+      localStorage.setItem('ext_sheet_url', url);
+      localStorage.setItem('ext_tab_name', tab);
+      localStorage.setItem('ext_court_filter', court);
+      localStorage.setItem('ext_pts_mode', pts);
 
-  apiCall('saveScheduleMatch', newMatch)
-    .then(function() {
-      closeModal('addMatchModal');
-      fetchSchedule();
-    })
-    .catch(function(err) { alert('เกิดข้อผิดพลาด: ' + err); });
-}
+      apiCall('importExternalSchedule', {
+        sheet_url: url,
+        tab_name: tab,
+        court_filter: court,
+        points_mode: pts
+      })
+        .then(function (res) {
+          alert('✅ บันทึกและดึงข้อมูลสำเร็จ!\nนำเข้า: ' + res.imported_count + ' แมตช์\nคอร์ท: ' + res.court_filter);
+          switchTab('schedule');
+        })
+        .catch(function (err) {
+          alert('เกิดข้อผิดพลาด: ' + err);
+        });
+    }
 
-function closeModal(id) {
-  document.getElementById(id).classList.remove('active');
-}
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
 
-// Settings Save
-function saveSettings() {
-  var val = document.getElementById('settingApiUrl').value.trim();
-  if (val) {
-    localStorage.setItem('badminton_api_url', val);
-    apiUrl = val;
-    alert('✅ บันทึก API URL เรียบร้อยแล้ว!');
+    // Settings Save
+    function saveSettings() {
+      var val = document.getElementById('settingApiUrl').value.trim();
+      if (val) {
+        localStorage.setItem('badminton_api_url', val);
+        apiUrl = val;
+        alert('✅ บันทึก API URL เรียบร้อยแล้ว!');
+        fetchLive();
+      }
+    }
+
+    function saveTournamentInfo() {
+      var name = document.getElementById('settingTourName').value;
+      var logo = document.getElementById('settingTourLogo').value;
+      apiCall('updateLive', { tournament_name: name, tournament_logo: logo })
+        .then(function (d) {
+          renderLive(d);
+          alert('✅ อัปเดตข้อมูลรายการแข่งขันเรียบร้อยแล้ว!');
+        })
+        .catch(function (err) { alert('เกิดข้อผิดพลาด: ' + err); });
+    }
+
+    // Background Live Polling
+    function fetchLive() {
+      if (!apiUrl) return;
+      apiCall('getLive')
+        .then(renderLive)
+        .catch(function () { });
+    }
+
     fetchLive();
-  }
-}
-
-function saveTournamentInfo() {
-  var name = document.getElementById('settingTourName').value;
-  var logo = document.getElementById('settingTourLogo').value;
-  apiCall('updateLive', { tournament_name: name, tournament_logo: logo })
-    .then(function(d) {
-      renderLive(d);
-      alert('✅ อัปเดตข้อมูลรายการแข่งขันเรียบร้อยแล้ว!');
-    })
-    .catch(function(err) { alert('เกิดข้อผิดพลาด: ' + err); });
-}
-
-// Background Live Polling
-function fetchLive() {
-  if (!apiUrl) return;
-  apiCall('getLive')
-    .then(renderLive)
-    .catch(function(){});
-}
-
-fetchLive();
-setInterval(fetchLive, 1000);
-</script>
+    setInterval(fetchLive, 1000);
+  </script>
 
 </body>
+
 </html>
