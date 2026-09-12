@@ -86,11 +86,9 @@ function setupSheets() {
 
   // ข้อมูลตัวอย่าง
   var sampleSchedule = [
-    ["M01", "ประเภทเดี่ยว มือ S", 21, "COURT 1", "TEAM A", "กุลวุฒิ", "", "TEAM B", "Viktor", "", "In Progress", "", ""],
-    ["M02", "ประเภทคู่ มือ A (15 แต้ม)", 15, "COURT 1", "TEAM YONEX", "สมชาย", "สมศักดิ์", "TEAM VICTOR", "John", "Mike", "Upcoming", "", ""],
-    ["M03", "ประเภทคู่ผสม", 21, "COURT 1", "BAT CLUB", "เดชาพล", "ทรัพย์สิรี", "ALL STAR", "Seo", "Chae", "Upcoming", "", ""],
-    ["M04", "ประเภทหญิงเดี่ยว รอบชิง", 21, "COURT 1", "SINGHA", "รัชนก", "", "VICTOR", "Tai Tzu-ying", "", "Upcoming", "", ""],
-    ["M05", "ประเภทชายคู่ (15 แต้ม)", 15, "COURT 1", "INDONESIA", "Fajar", "Rian", "MALAYSIA", "Chia", "Soh", "Upcoming", "", ""]
+    ["194", "P (RR1)", 15, "COURT 9", "Pipet", "กิตติคม", "ฐณวรรณ หมันดี", "Ron noun", "เพชรช่วง ชูรื่นวงศ์", "กัณตพงค์ ปันสำราญ", "Upcoming", "", ""],
+    ["195", "P (RR1)", 15, "COURT 9", "พงษ์พาราน้อย", "ธนกฤต สันบุญเป็ง", "ชนาธิป เดโช", "MG", "ทรงพรรณ แมกตี่", "ภานุภัทร ก่ำ", "Upcoming", "", ""],
+    ["198", "DU9 (RR1)", 15, "COURT 9", "แก้วละเมียดดับเจังหวัจป...", "โอยฤดา ทองถนอม", "พิชชา สัมฤทธิ์", "ญาณิสาสมอล", "อภิญญา วิงกาโจ", "ประภากร แก้วทอง", "Upcoming", "", ""]
   ];
 
   sampleSchedule.forEach(function(row) {
@@ -254,9 +252,10 @@ function handleRequest(e) {
       var sheetUrl = params.sheet_url || (postData ? postData.sheet_url : "");
       var tabName = params.tab_name || (postData ? postData.tab_name : "Data");
       var courtFilter = params.court_filter || (postData ? postData.court_filter : "");
-      var defaultPts = Number(params.points_mode || (postData ? postData.points_mode : 21));
+      var defaultPts = Number(params.points_mode || (postData ? postData.points_mode : 15));
+      var clearOld = params.clear_old !== undefined ? (params.clear_old === "true" || params.clear_old === true) : true;
       
-      result.data = importFromExternalSheet(schedSheet, sheetUrl, tabName, courtFilter, defaultPts);
+      result.data = importFromExternalSheet(schedSheet, sheetUrl, tabName, courtFilter, defaultPts, clearOld);
     }
     else if (action === "saveResult") {
       result.data = processSaveResult(liveSheet, schedSheet, histSheet);
@@ -514,19 +513,19 @@ function getScheduleData(sheet) {
 
     list.push({
       row_index: i + 1,
-      match_id: r[0],
-      match_type: r[1],
+      match_id: String(r[0]),
+      match_type: String(r[1] || ""),
       points_mode: pts,
-      court: r[3],
-      team_a_name: r[4],
-      player_a1: r[5],
-      player_a2: r[6],
-      team_b_name: r[7],
-      player_b1: r[8],
-      player_b2: r[9],
-      status: r[10] || "Upcoming",
-      winner: r[11] || "",
-      final_score: r[12] || ""
+      court: String(r[3] || ""),
+      team_a_name: String(r[4] || ""),
+      player_a1: String(r[5] || ""),
+      player_a2: String(r[6] || ""),
+      team_b_name: String(r[7] || ""),
+      player_b1: String(r[8] || ""),
+      player_b2: String(r[9] || ""),
+      status: String(r[10] || "Upcoming"),
+      winner: String(r[11] || ""),
+      final_score: String(r[12] || "")
     });
   }
   return list;
@@ -537,7 +536,7 @@ function saveScheduleMatchData(sheet, d) {
   var foundRow = -1;
 
   for (var i = 1; i < rows.length; i++) {
-    if (rows[i][0] == d.match_id) {
+    if (String(rows[i][0]).trim() === String(d.match_id).trim()) {
       foundRow = i + 1;
       break;
     }
@@ -547,19 +546,19 @@ function saveScheduleMatchData(sheet, d) {
   if (pts !== 15 && pts !== 21) pts = 21;
 
   var rowData = [
-    d.match_id || ("M" + (rows.length < 10 ? "0" : "") + rows.length),
-    d.match_type || "ประเภททั่วไป",
+    String(d.match_id || ("M" + (rows.length < 10 ? "0" : "") + rows.length)),
+    String(d.match_type || "ประเภททั่วไป"),
     pts,
-    d.court || "COURT 1",
-    d.team_a_name || "TEAM A",
-    d.player_a1 || "",
-    d.player_a2 || "",
-    d.team_b_name || "TEAM B",
-    d.player_b1 || "",
-    d.player_b2 || "",
-    d.status || "Upcoming",
-    d.winner || "",
-    d.final_score || ""
+    String(d.court || "COURT 1"),
+    String(d.team_a_name || "TEAM A"),
+    String(d.player_a1 || ""),
+    String(d.player_a2 || ""),
+    String(d.team_b_name || "TEAM B"),
+    String(d.player_b1 || ""),
+    String(d.player_b2 || ""),
+    String(d.status || "Upcoming"),
+    String(d.winner || ""),
+    String(d.final_score || "")
   ];
 
   if (foundRow > 0) {
@@ -573,7 +572,7 @@ function loadMatchToLive(schedSheet, liveSheet, matchId) {
   var schedule = getScheduleData(schedSheet);
   var target = null;
   for (var i = 0; i < schedule.length; i++) {
-    if (schedule[i].match_id === matchId) {
+    if (String(schedule[i].match_id).trim() === String(matchId).trim()) {
       target = schedule[i];
       schedSheet.getRange(target.row_index, 11).setValue("In Progress");
       break;
@@ -612,9 +611,9 @@ function loadMatchToLive(schedSheet, liveSheet, matchId) {
 }
 
 // -------------------------------------------------------------
-// นำเข้าข้อมูลตารางแข่งและนักกีฬาจาก Google Sheet ภายนอก
+// นำเข้าข้อมูลตารางแข่งและนักกีฬาจาก Google Sheet ภายนอก (แท็บ Data)
 // -------------------------------------------------------------
-function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, defaultPts) {
+function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, defaultPts, clearOld) {
   if (!externalUrl) throw new Error("กรุณาระบุ URL ของ Google Sheet ภายนอก");
 
   // สกัด Spreadsheet ID จาก URL
@@ -628,13 +627,12 @@ function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, 
     throw new Error("ไม่สามารถเปิด Google Sheet ได้ กรุณาตรวจสอบว่าได้แชร์สิทธิ์เป็น 'ทุกคนที่มีลิงก์มีสิทธิ์อ่าน (Anyone with link can view)'");
   }
 
-  // หาแท็บ Data
+  // หาแท็บข้อมูล
   var extSheet = null;
   if (tabName) {
     extSheet = extSS.getSheetByName(tabName);
   }
   if (!extSheet) {
-    // ถ้าหาแท็บตามชื่อไม่เจอ ให้ลองหาตาม GID หรือใช้แท็บแรก
     var gidMatch = externalUrl.match(/gid=([0-9]+)/);
     if (gidMatch) {
       var targetGid = Number(gidMatch[1]);
@@ -648,7 +646,7 @@ function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, 
     }
   }
   if (!extSheet) {
-    extSheet = extSS.getSheets()[0]; // ใช้แท็บแรกสุดเป็นตัวสำรอง
+    extSheet = extSS.getSheets()[0];
   }
 
   var values = extSheet.getDataRange().getValues();
@@ -656,99 +654,168 @@ function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, 
     return { count: 0, message: "ไม่พบข้อมูลในแท็บ " + extSheet.getName() };
   }
 
-  // อ่านแถว Header เพื่อทำการแมพคอลัมน์อัตโนมัติ
-  var headers = values[0].map(function(h) { return String(h).trim().toLowerCase(); });
-  
-  function findCol(keywords, defaultIdx) {
-    for (var i = 0; i < headers.length; i++) {
-      for (var k = 0; k < keywords.length; k++) {
-        if (headers[i].indexOf(keywords[k]) >= 0) return i;
-      }
+  // 1. ค้นหาแถวที่เป็น Header (ตรวจสอบแถว 0, 1, 2)
+  var headerRowIdx = 0;
+  for (var r = 0; r < Math.min(3, values.length); r++) {
+    var rowStr = values[r].map(function(c) { return String(c).trim().toLowerCase(); }).join(" ");
+    if (rowStr.indexOf("match") >= 0 || rowStr.indexOf("court") >= 0 || rowStr.indexOf("player") >= 0 || rowStr.indexOf("นักกีฬา") >= 0) {
+      headerRowIdx = r;
+      break;
     }
-    return defaultIdx < headers.length ? defaultIdx : -1;
   }
 
-  var idxMatchId = findCol(["match", "แมตช์", "คู่ที่", "ลำดับ", "id", "no", "code"], 0);
-  var idxType = findCol(["type", "ประเภท", "รุ่น", "category", "event"], 1);
-  var idxCourt = findCol(["court", "คอร์ท", "สนาม"], 2);
-  var idxTeamA = findCol(["team a", "ทีม a", "ทีม1", "team 1", "สังกัด 1", "สังกัด a", "club 1"], 3);
-  var idxPlayerA1 = findCol(["player a1", "player 1", "นักกีฬา 1", "ผู้เล่น 1", "a1", "ชื่อ 1", "name 1"], 4);
-  var idxPlayerA2 = findCol(["player a2", "player 2", "นักกีฬา 2", "ผู้เล่น 2", "a2", "ชื่อ 2", "name 2"], 5);
-  var idxTeamB = findCol(["team b", "ทีม b", "ทีม2", "team 2", "สังกัด 2", "สังกัด b", "club 2"], 6);
-  var idxPlayerB1 = findCol(["player b1", "player 3", "นักกีฬา 3", "ผู้เล่น 3", "b1", "ชื่อ 3", "name 3"], 7);
-  var idxPlayerB2 = findCol(["player b2", "player 4", "นักกีฬา 4", "ผู้เล่น 4", "b2", "ชื่อ 4", "name 4"], 8);
-  var idxPts = findCol(["point", "แต้ม", "กติกา", "pts", "rule"], -1);
+  var headers = values[headerRowIdx].map(function(h) { return String(h).trim(); });
+  var headersLower = headers.map(function(h) { return h.toLowerCase(); });
 
-  var importedCount = 0;
+  // 2. ระบุตำแหน่งคอลัมน์แบบไดนามิกและแม่นยำ
+  // ค่าเริ่มต้นอิงตามโครงสร้างมาตรฐานตารางแบดมินตัน:
+  // Col A=Match(0), Col B=Court(1), Col H=Type(7), Col I=Round(8), Col J=Group(9), 
+  // Col K=Team1(10), Col L=Player1(11), Col M=Player2(12), Col R=Team2(17), Col S=Player1(18), Col T=Player2(19)
+  var idxMatchId = 0;
+  var idxCourt = 1;
+  var idxType = 7;
+  var idxRound = 8;
+  var idxGroupA = 9;
+  var idxTeamA = 10;
+  var idxPlayerA1 = 11;
+  var idxPlayerA2 = 12;
+  var idxGroupB = 16;
+  var idxTeamB = 17;
+  var idxPlayerB1 = 18;
+  var idxPlayerB2 = 19;
+
+  // ค้นหาคอลัมน์ Team และ Player ที่มีซ้ำ 2 ชุด
+  var teamCols = [];
+  var player1Cols = [];
+  var player2Cols = [];
+
+  for (var c = 0; c < headersLower.length; c++) {
+    var h = headersLower[c];
+    if (h === "match" || h === "แมตช์" || h === "คู่ที่" || h === "ลำดับ" || h === "no." || h === "id") {
+      idxMatchId = c;
+    } else if (h === "court" || h === "คอร์ท" || h === "สนาม" || h === "คอร์ต") {
+      idxCourt = c;
+    } else if (h === "type" || h === "ประเภท" || h === "รุ่น") {
+      idxType = c;
+    } else if (h === "round" || h === "รอบ") {
+      idxRound = c;
+    }
+
+    if (h === "team" || h === "ทีม" || h === "สังกัด" || h === "club" || h === "team a" || h === "team 1") {
+      teamCols.push(c);
+    }
+    if (h === "player 1" || h === "player1" || h === "นักกีฬา 1" || h === "ผู้เล่น 1" || h === "player a1") {
+      player1Cols.push(c);
+    }
+    if (h === "player 2" || h === "player2" || h === "นักกีฬา 2" || h === "ผู้เล่น 2" || h === "player a2") {
+      player2Cols.push(c);
+    }
+  }
+
+  if (teamCols.length >= 2) {
+    idxTeamA = teamCols[0];
+    idxTeamB = teamCols[1];
+  }
+  if (player1Cols.length >= 2) {
+    idxPlayerA1 = player1Cols[0];
+    idxPlayerB1 = player1Cols[1];
+  }
+  if (player2Cols.length >= 2) {
+    idxPlayerA2 = player2Cols[0];
+    idxPlayerB2 = player2Cols[1];
+  }
+
+  // 3. จัดการล้างตาราง Schedule เดิมเพื่อป้องกันข้อมูลผิดซ้ำซ้อน
+  if (clearOld) {
+    var lastRow = schedSheet.getLastRow();
+    if (lastRow > 1) {
+      schedSheet.getRange(2, 1, lastRow - 1, 13).clearContent();
+    }
+  }
+
   var targetFilter = courtFilter ? String(courtFilter).trim().toLowerCase() : "";
+  var filterNumbersOnly = targetFilter.replace(/[^0-9a-zA-Z]/g, '');
+  var isFilterAll = (!targetFilter || targetFilter === "all" || targetFilter === "ทั้งหมด");
 
-  // ล้างข้อมูลเก่าใน Schedule ออกก่อน หรือเตรียมเขียนต่อ
-  var existingData = getScheduleData(schedSheet);
-  var existingMap = {};
-  existingData.forEach(function(item) {
-    existingMap[String(item.match_id).trim()] = item;
-  });
+  var importedRows = [];
+  var startRow = headerRowIdx + 1;
 
-  for (var r = 1; r < values.length; r++) {
+  for (var r = startRow; r < values.length; r++) {
     var row = values[r];
     if (!row || row.length === 0) continue;
 
-    var mId = idxMatchId >= 0 && row[idxMatchId] !== undefined ? String(row[idxMatchId]).trim() : ("M" + (r < 10 ? "0" : "") + r);
-    if (!mId) continue;
+    // ต้องมี Match ID
+    var mIdVal = row[idxMatchId];
+    if (mIdVal === undefined || mIdVal === null || String(mIdVal).trim() === "") continue;
+    var mId = String(mIdVal).trim();
 
-    var mCourt = idxCourt >= 0 && row[idxCourt] !== undefined ? String(row[idxCourt]).trim() : "COURT 1";
-    
-    // ตรวจสอบเงื่อนไขตัวกรองคอร์ท (Court Filter)
-    if (targetFilter && targetFilter !== "all" && targetFilter !== "ทั้งหมด") {
-      var courtNorm = mCourt.toLowerCase();
-      // เช็คว่าตรงกับตัวกรองหรือไม่ เช่น '9', 'คอร์ท 9', 'court 9', 'a1'
-      if (courtNorm !== targetFilter && courtNorm.indexOf(targetFilter) < 0 && targetFilter.indexOf(courtNorm) < 0) {
-        // ลองเทียบเฉพาะตัวเลข เช่น คอร์ต 9 กับ 9
-        var numInCourt = courtNorm.replace(/[^0-9a-zA-Z]/g, '');
-        var numInFilter = targetFilter.replace(/[^0-9a-zA-Z]/g, '');
-        if (!numInCourt || numInCourt !== numInFilter) {
-          continue; // ข้ามคู่ที่ไม่ตรงกับคอร์ทที่เลือก
-        }
+    // คอร์ท
+    var rawCourt = (idxCourt >= 0 && row[idxCourt] !== undefined) ? String(row[idxCourt]).trim() : "";
+    var courtLower = rawCourt.toLowerCase();
+    var courtDigits = courtLower.replace(/[^0-9a-zA-Z]/g, '');
+
+    // ตรวจสอบตัวกรองคอร์ท (Court Filter)
+    if (!isFilterAll) {
+      // ถ้าเลือกกรองคอร์ท แต่แถวนี้ไม่มีการระบุคอร์ท ให้ข้ามทันที
+      if (!rawCourt || courtLower === "") {
+        continue;
+      }
+
+      var matchFound = false;
+      if (courtLower === targetFilter) matchFound = true;
+      else if (courtDigits && filterNumbersOnly && courtDigits === filterNumbersOnly) matchFound = true;
+      else if (courtLower.indexOf(targetFilter) >= 0 || targetFilter.indexOf(courtLower) >= 0) matchFound = true;
+
+      if (!matchFound) {
+        continue; // ไม่ตรงกับคอร์ทที่เลือก ข้ามไป
       }
     }
 
-    var mType = idxType >= 0 && row[idxType] !== undefined ? String(row[idxType]).trim() : "ประเภททั่วไป";
-    var mTeamA = idxTeamA >= 0 && row[idxTeamA] !== undefined ? String(row[idxTeamA]).trim() : "TEAM A";
-    var mPA1 = idxPlayerA1 >= 0 && row[idxPlayerA1] !== undefined ? String(row[idxPlayerA1]).trim() : "";
-    var mPA2 = idxPlayerA2 >= 0 && row[idxPlayerA2] !== undefined ? String(row[idxPlayerA2]).trim() : "";
-    var mTeamB = idxTeamB >= 0 && row[idxTeamB] !== undefined ? String(row[idxTeamB]).trim() : "TEAM B";
-    var mPB1 = idxPlayerB1 >= 0 && row[idxPlayerB1] !== undefined ? String(row[idxPlayerB1]).trim() : "";
-    var mPB2 = idxPlayerB2 >= 0 && row[idxPlayerB2] !== undefined ? String(row[idxPlayerB2]).trim() : "";
-    
-    var mPts = defaultPts === 15 ? 15 : 21;
-    if (idxPts >= 0 && row[idxPts]) {
-      var valPts = Number(row[idxPts]);
-      if (valPts === 15 || valPts === 21) mPts = valPts;
-    }
+    // ประมวลผลชื่อและประเภท
+    var mType = (idxType >= 0 && row[idxType]) ? String(row[idxType]).trim() : "ประเภททั่วไป";
+    var mRound = (idxRound >= 0 && row[idxRound]) ? String(row[idxRound]).trim() : "";
+    var displayType = mType + (mRound ? (" (" + mRound + ")") : "");
 
-    // จัดเตรียมข้อมูล
-    saveScheduleMatchData(schedSheet, {
-      match_id: mId,
-      match_type: mType,
-      points_mode: mPts,
-      court: mCourt,
-      team_a_name: mTeamA || "TEAM A",
-      player_a1: mPA1,
-      player_a2: mPA2,
-      team_b_name: mTeamB || "TEAM B",
-      player_b1: mPB1,
-      player_b2: mPB2,
-      status: (existingMap[mId] && existingMap[mId].status) ? existingMap[mId].status : "Upcoming",
-      winner: (existingMap[mId] && existingMap[mId].winner) ? existingMap[mId].winner : "",
-      final_score: (existingMap[mId] && existingMap[mId].final_score) ? existingMap[mId].final_score : ""
-    });
+    // ดึงชื่อทีมและนักกีฬา
+    var mTeamA = (idxTeamA >= 0 && row[idxTeamA]) ? String(row[idxTeamA]).trim() : "TEAM A";
+    var mPA1 = (idxPlayerA1 >= 0 && row[idxPlayerA1]) ? String(row[idxPlayerA1]).trim() : "";
+    var mPA2 = (idxPlayerA2 >= 0 && row[idxPlayerA2]) ? String(row[idxPlayerA2]).trim() : "";
 
-    importedCount++;
+    var mTeamB = (idxTeamB >= 0 && row[idxTeamB]) ? String(row[idxTeamB]).trim() : "TEAM B";
+    var mPB1 = (idxPlayerB1 >= 0 && row[idxPlayerB1]) ? String(row[idxPlayerB1]).trim() : "";
+    var mPB2 = (idxPlayerB2 >= 0 && row[idxPlayerB2]) ? String(row[idxPlayerB2]).trim() : "";
+
+    // ข้ามกรณีที่ไม่มีชื่อนักกีฬาเลย
+    if (!mPA1 && !mPB1 && mTeamA === "TEAM A" && mTeamB === "TEAM B") continue;
+
+    var formattedCourt = rawCourt ? (rawCourt.toUpperCase().indexOf("COURT") >= 0 ? rawCourt.toUpperCase() : ("COURT " + rawCourt)) : (courtFilter ? ("COURT " + courtFilter) : "COURT 1");
+    var mPts = (defaultPts === 15 || defaultPts === 21) ? defaultPts : 15;
+
+    importedRows.push([
+      mId,
+      displayType,
+      mPts,
+      formattedCourt,
+      mTeamA || "TEAM A",
+      mPA1,
+      mPA2,
+      mTeamB || "TEAM B",
+      mPB1,
+      mPB2,
+      "Upcoming",
+      "",
+      ""
+    ]);
+  }
+
+  // เขียนแถวที่นำเข้าลงในชีต Schedule
+  if (importedRows.length > 0) {
+    schedSheet.getRange(2, 1, importedRows.length, 13).setValues(importedRows);
   }
 
   return {
     success: true,
-    imported_count: importedCount,
+    imported_count: importedRows.length,
     tab_used: extSheet.getName(),
     court_filter: courtFilter || "ทั้งหมด",
     schedule: getScheduleData(schedSheet)
@@ -811,7 +878,7 @@ function processSaveResult(liveSheet, schedSheet, histSheet) {
   if (live.match_id) {
     var schedRows = schedSheet.getDataRange().getValues();
     for (var i = 1; i < schedRows.length; i++) {
-      if (schedRows[i][0] == live.match_id) {
+      if (String(schedRows[i][0]).trim() === String(live.match_id).trim()) {
         schedSheet.getRange(i + 1, 11).setValue("Finished");
         schedSheet.getRange(i + 1, 12).setValue(winnerName);
         schedSheet.getRange(i + 1, 13).setValue(finalScoreStr);
