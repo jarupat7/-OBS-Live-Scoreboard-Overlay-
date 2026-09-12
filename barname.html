@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badminton VS Match Bar - OBS Overlay</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;800;900&family=Chakra+Petch:wght@600;700;800;900&family=Teko:wght@700&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* พื้นหลังโปร่งใส 100% สำหรับ OBS Studio Browser Source */
+    body {
+      background: transparent;
+      font-family: 'Chakra Petch', 'Kanit', sans-serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* -------------------------------------------
+       CONTAINER & BROADCAST BANNER
+    ------------------------------------------- */
+    .vs-broadcast-banner {
+      position: relative;
+      width: 1020px;
+      max-width: 95vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      filter: drop-shadow(0 16px 35px rgba(0, 0, 0, 0.95));
+      animation: bannerSlideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    @keyframes bannerSlideIn {
+      0% {
+        opacity: 0;
+        transform: translateY(-40px) scale(0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* -------------------------------------------
+       1. TOP HEADER (LIVE STREAM / TOURNAMENT)
+    ------------------------------------------- */
+    .top-pill-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+      border-bottom: none;
+      border-radius: 12px 12px 0 0;
+      padding: 6px 36px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #f8fafc;
+      text-transform: uppercase;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      position: relative;
+      z-index: 5;
+      margin-bottom: -4px;
+    }
+
+    .top-pill-bar .live-dot {
+      width: 10px;
+      height: 10px;
+      background: #ef4444;
+      border-radius: 50%;
+      margin-right: 8px;
+      box-shadow: 0 0 12px #ef4444;
+      animation: pulseDot 1.4s infinite;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    /* -------------------------------------------
+       2. MAIN FRAME CHASSIS (CYBER HUD BORDER)
+    ------------------------------------------- */
+    .main-chassis {
+      position: relative;
+      width: 100%;
+      background: linear-gradient(180deg, #182230 0%, #0a0f18 100%);
+      border: 2.5px solid #334155;
+      border-radius: 20px;
+      padding: 8px;
+      box-shadow: 
+        0 0 30px rgba(0, 0, 0, 0.9),
+        inset 0 1px 1px rgba(255, 255, 255, 0.25),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      z-index: 10;
+    }
+
+    /* Corner Sci-Fi accents */
+    .chassis-corner {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-color: #38bdf8;
+      border-style: solid;
+      pointer-events: none;
+    }
+    .corner-tl { top: 4px; left: 4px; border-width: 2.5px 0 0 2.5px; }
+    .corner-tr { top: 4px; right: 4px; border-width: 2.5px 2.5px 0 0; }
+    .corner-bl { bottom: 4px; left: 4px; border-width: 0 0 2.5px 2.5px; }
+    .corner-br { bottom: 4px; right: 4px; border-width: 0 2.5px 2.5px 0; }
+
+    .teams-grid {
+      display: grid;
+      grid-template-columns: 1fr 110px 1fr;
+      width: 100%;
+      align-items: stretch;
+      gap: 6px;
+    }
+
+    /* -------------------------------------------
+       3. TEAM SLOTS (BLUE & RED NEON)
+    ------------------------------------------- */
+    .team-slot {
+      position: relative;
+      padding: 14px 26px;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+      min-height: 115px;
+    }
+
+    /* SIDE A: BLUE NEON */
+    .team-slot.side-a {
+      background: radial-gradient(circle at 0% 50%, rgba(14, 165, 233, 0.38) 0%, rgba(8, 20, 38, 0.95) 75%);
+      border: 2px solid #0284c7;
+      box-shadow: 
+        inset 0 0 28px rgba(2, 132, 199, 0.35),
+        0 0 18px rgba(2, 132, 199, 0.25);
+      text-align: right;
+      padding-right: 28px;
+    }
+
+    .team-slot.side-a::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 7px;
+      background: linear-gradient(180deg, #38bdf8, #0284c7);
+      box-shadow: 0 0 14px #38bdf8;
+    }
+
+    /* SIDE B: RED NEON */
+    .team-slot.side-b {
+      background: radial-gradient(circle at 100% 50%, rgba(239, 68, 68, 0.38) 0%, rgba(38, 10, 18, 0.95) 75%);
+      border: 2px solid #dc2626;
+      box-shadow: 
+        inset 0 0 28px rgba(220, 38, 38, 0.35),
+        0 0 18px rgba(220, 38, 38, 0.25);
+      text-align: left;
+      padding-left: 28px;
+    }
+
+    .team-slot.side-b::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 7px;
+      background: linear-gradient(180deg, #f87171, #dc2626);
+      box-shadow: 0 0 14px #f87171;
+    }
+
+    /* Team & Player Typography */
+    .team-name {
+      font-family: 'Chakra Petch', 'Kanit', sans-serif;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: 1.15;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 3px 12px rgba(0, 0, 0, 0.9);
+    }
+
+    .side-a .team-name {
+      color: #ffffff;
+      text-shadow: 0 0 16px rgba(56, 189, 248, 0.65);
+    }
+
+    .side-b .team-name {
+      color: #ffffff;
+      text-shadow: 0 0 16px rgba(248, 113, 113, 0.65);
+    }
+
+    .player-names {
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: 0.5px;
+    }
+
+    .side-a .player-names {
+      color: #bae6fd;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+    }
+
+    .side-b .player-names {
+      color: #fecaca;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+    }
+
+    /* -------------------------------------------
+       4. CENTER GLOWING VS BADGE
+    ------------------------------------------- */
+    .vs-center-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 25;
+    }
+
+    .vs-circle {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #2e1d07 0%, #100a03 100%);
+      border: 3.5px solid #f59e0b;
+      box-shadow: 
+        0 0 28px rgba(245, 158, 11, 0.7),
+        inset 0 0 16px rgba(245, 158, 11, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      animation: vsPulse 2.4s infinite ease-in-out;
+    }
+
+    @keyframes vsPulse {
+      0%, 100% {
+        box-shadow: 0 0 22px rgba(245, 158, 11, 0.65), inset 0 0 12px rgba(245, 158, 11, 0.4);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 38px rgba(251, 191, 36, 0.9), inset 0 0 20px rgba(251, 191, 36, 0.6);
+        transform: scale(1.05);
+      }
+    }
+
+    .vs-text {
+      font-family: 'Teko', sans-serif;
+      font-size: 64px;
+      font-weight: 700;
+      line-height: 0.9;
+      background: linear-gradient(180deg, #fffbeb 0%, #fbbf24 45%, #b45309 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.95));
+      letter-spacing: -1px;
+      padding-top: 4px;
+    }
+
+    /* Lighting sparks circle */
+    .vs-sparks {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(251, 191, 36, 0.4);
+      animation: rotateSparks 14s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes rotateSparks {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* -------------------------------------------
+       5. BOTTOM FOOTER (CATEGORY / BEST OF)
+    ------------------------------------------- */
+    .bottom-info-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: linear-gradient(180deg, #090e17 0%, #030712 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-top: none;
+      border-radius: 0 0 14px 14px;
+      padding: 6px 32px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.7);
+      position: relative;
+      z-index: 5;
+      margin-top: -4px;
+    }
+
+    .bottom-info-bar .highlight-badge {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+      color: #facc15;
+      padding: 2px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    /* -------------------------------------------
+       6. CONFIG MODAL (กด Alt + S หรือคลิก 3 ครั้ง)
+    ------------------------------------------- */
+    #configModal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #0f172a;
+      border: 2px solid #38bdf8;
+      border-radius: 14px;
+      padding: 24px;
+      z-index: 1000;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.95);
+      width: 440px;
+      color: #f8fafc;
+      text-align: left;
+    }
+
+    #configModal h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      color: #38bdf8;
+      font-weight: 800;
+    }
+
+    #configModal input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #ffffff;
+      font-size: 13px;
+      margin-bottom: 14px;
+      outline: none;
+    }
+
+    #configModal button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-family: 'Kanit', sans-serif;
+      cursor: pointer;
+      border: none;
+      margin-right: 8px;
+    }
+
+    .btn-save {
+      background: #0284c7;
+      color: white;
+    }
+
+    .btn-close {
+      background: #475569;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- VS BROADCAST OVERLAY CONTAINER -->
+  <div class="vs-broadcast-banner" id="bannerContainer" title="คลิก 3 ครั้งเพื่อตั้งค่า URL API">
+    
+    <!-- TOP PILL: TOURNAMENT / COURT -->
+    <div class="top-pill-bar">
+      <span class="live-dot"></span>
+      <span id="topTournamentText">LIVE STREAM : BADMINTON TOURNAMENT</span>
+    </div>
+
+    <!-- MAIN CHASSIS -->
+    <div class="main-chassis">
+      <div class="chassis-corner corner-tl"></div>
+      <div class="chassis-corner corner-tr"></div>
+      <div class="chassis-corner corner-bl"></div>
+      <div class="chassis-corner corner-br"></div>
+
+      <div class="teams-grid">
+        <!-- SIDE A (BLUE) -->
+        <div class="team-slot side-a">
+          <div class="team-name" id="nameTeamA">TEAM A</div>
+          <div class="player-names" id="namesPlayerA">นักกีฬา A1 / นักกีฬา A2</div>
+        </div>
+
+        <!-- CENTER VS -->
+        <div class="vs-center-container">
+          <div class="vs-sparks"></div>
+          <div class="vs-circle">
+            <div class="vs-text">VS</div>
+          </div>
+        </div>
+
+        <!-- SIDE B (RED) -->
+        <div class="team-slot side-b">
+          <div class="team-name" id="nameTeamB">TEAM B</div>
+          <div class="player-names" id="namesPlayerB">นักกีฬา B1 / นักกีฬา B2</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM INFO BAR -->
+    <div class="bottom-info-bar">
+      <span id="matchTypeText">ประเภทคู่ผสม มือทั่วไป</span>
+      <span class="highlight-badge" id="pointsModeBadge">21 แต้ม (BEST OF 3)</span>
+      <span id="courtBadge" style="color: #38bdf8;">COURT 1</span>
+    </div>
+
+  </div>
+
+  <!-- CONFIG MODAL (Alt+S หรือคลิก 3 ครั้ง) -->
+  <div id="configModal">
+    <h3>⚙️ ตั้งค่า Web App API URL</h3>
+    <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">ใส่ URL Google Apps Script Web App เพื่อเชื่อมโยงข้อมูลแบบเรียลไทม์:</p>
+    <input type="text" id="apiInput" placeholder="https://script.google.com/macros/s/.../exec">
+    <div style="text-align: right;">
+      <button class="btn-close" onclick="closeConfig()">ปิด</button>
+      <button class="btn-save" onclick="saveApiUrl()">บันทึก</button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // ⚙️ ฟิก Google Apps Script Web App URL อัตโนมัติ (ไม่ต้องคอยพิมพ์ใหม่)
+    // =========================================================================
+    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec";
+
+    (function () {
+      var urlParams = new URLSearchParams(window.location.search);
+      var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
+
+      // คีย์ลัด Alt + S สำหรับเปลี่ยน URL
+      window.addEventListener('keydown', function (e) {
+        if (e.altKey && (e.key === 's' || e.key === 'S')) {
+          document.getElementById('configModal').style.display = 'block';
+          document.getElementById('apiInput').value = apiUrl;
+        }
+      });
+
+      // คลิก 3 ครั้งเพื่อเปิดตั้งค่า
+      var clickCount = 0;
+      document.getElementById('bannerContainer').addEventListener('click', function () {
+        clickCount++;
+        if (clickCount >= 3) {
+          document.getElementById('configModal').style.display = 'block';
+          document.getElementById('apiInput').value = apiUrl;
+          clickCount = 0;
+        }
+      });
+
+      window.saveApiUrl = function () {
+        var val = document.getElementById('apiInput').value.trim();
+        if (val) {
+          localStorage.setItem('badminton_api_url', val);
+          apiUrl = val;
+          document.getElementById('configModal').style.display = 'none';
+          fetchData();
+        }
+      };
+
+      window.closeConfig = function () {
+        document.getElementById('configModal').style.display = 'none';
+      };
+
+      var isFetching = false;
+
+      function renderData(d) {
+        // 1. Header & Tournament Title
+        var tourName = d.tournament_name || 'BADMINTON CHAMPIONSHIP';
+        document.getElementById('topTournamentText').textContent = 'LIVE STREAM : ' + tourName;
+
+        // 2. ชื่อทีมและนักกีฬา
+        document.getElementById('nameTeamA').textContent = d.team_a_name || 'TEAM A';
+        document.getElementById('nameTeamB').textContent = d.team_b_name || 'TEAM B';
+
+        var playersA = d.player_a1 || '';
+        if (d.match_mode === 'doubles' && d.player_a2) {
+          playersA += ' / ' + d.player_a2;
+        }
+        document.getElementById('namesPlayerA').textContent = playersA || 'นักกีฬา A';
+
+        var playersB = d.player_b1 || '';
+        if (d.match_mode === 'doubles' && d.player_b2) {
+          playersB += ' / ' + d.player_b2;
+        }
+        document.getElementById('namesPlayerB').textContent = playersB || 'นักกีฬา B';
+
+        // 3. ประเภทการแข่งขันและคอร์ท
+        document.getElementById('matchTypeText').textContent = d.match_type || 'ประเภททั่วไป';
+        document.getElementById('courtBadge').textContent = d.court || 'COURT 1';
+
+        var ptsMode = Number(d.points_mode) === 15 ? 15 : 21;
+        document.getElementById('pointsModeBadge').textContent = ptsMode + ' แต้ม (BEST OF 3)';
+      }
+
+      function fetchData() {
+        if (!apiUrl || isFetching) return;
+        isFetching = true;
+
+        var fetchUrl = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=getLive&t=' + new Date().getTime();
+
+        fetch(fetchUrl)
+          .then(function (res) { return res.json(); })
+          .then(function (res) {
+            isFetching = false;
+            if (res.success && res.data) {
+              renderData(res.data);
+            }
+          })
+          .catch(function (err) {
+            isFetching = false;
+            console.error('Data fetch error:', err);
+          });
+      }
+
+      // ดึงข้อมูลครั้งแรกทันที
+      fetchData();
+
+      // ดึงข้อมูลอัปเดตแบบเรียลไทม์ทุกๆ 1.5 วินาที
+      setInterval(fetchData, 1500);
+    })();
+  </script>
+</body>
+
+</html>
