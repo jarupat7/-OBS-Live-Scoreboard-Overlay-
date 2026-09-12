@@ -103,17 +103,18 @@ function setupSheets() {
   schedSheet.setFrozenRows(1);
   schedSheet.setTabColor("#f59e0b");
 
+  // กฎการตรวจสอบสถานะ (ตั้งค่าแบบไม่อนุญาตให้ error ขวางการเขียน)
   var statusRule = SpreadsheetApp.newDataValidation()
     .requireValueInList(['Upcoming', 'In Progress', 'Finished'], true)
-    .setAllowInvalid(false)
+    .setAllowInvalid(true)
     .build();
-  schedSheet.getRange("K2:K500").setDataValidation(statusRule);
+  schedSheet.getRange("K2:K1000").setDataValidation(statusRule);
 
   var ptsRule = SpreadsheetApp.newDataValidation()
     .requireValueInList([15, 21], true)
-    .setAllowInvalid(false)
+    .setAllowInvalid(true)
     .build();
-  schedSheet.getRange("C2:C500").setDataValidation(ptsRule);
+  schedSheet.getRange("C2:C1000").setDataValidation(ptsRule);
 
   schedSheet.autoResizeColumns(1, schedHeaders.length);
 
@@ -725,7 +726,14 @@ function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, 
     idxPlayerB2 = player2Cols[1];
   }
 
-  // 3. จัดการล้างตาราง Schedule เดิมเพื่อป้องกันข้อมูลผิดซ้ำซ้อน
+  // 3. จัดการล้างตาราง Schedule เดิมและล้าง Data Validation เพื่อป้องกันข้อผิดพลาด
+  try {
+    var maxRows = schedSheet.getMaxRows();
+    if (maxRows > 1) {
+      schedSheet.getRange(2, 1, maxRows - 1, 13).clearDataValidations();
+    }
+  } catch(e) {}
+
   if (clearOld) {
     var lastRow = schedSheet.getLastRow();
     if (lastRow > 1) {
@@ -811,6 +819,15 @@ function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, 
   // เขียนแถวที่นำเข้าลงในชีต Schedule
   if (importedRows.length > 0) {
     schedSheet.getRange(2, 1, importedRows.length, 13).setValues(importedRows);
+    
+    // ตั้งค่า Data Validation แบบปลอดภัย (allowInvalid = true) เพื่อไม่ให้เกิด Error
+    try {
+      var statusRule = SpreadsheetApp.newDataValidation()
+        .requireValueInList(['Upcoming', 'In Progress', 'Finished'], true)
+        .setAllowInvalid(true)
+        .build();
+      schedSheet.getRange(2, 11, importedRows.length, 1).setDataValidation(statusRule);
+    } catch(e) {}
   }
 
   return {
