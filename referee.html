@@ -857,6 +857,12 @@
           <option value="15">15 แต้ม</option>
         </select>
 
+        <label class="form-label">รูปแบบการนำเข้าข้อมูล:</label>
+        <select class="form-input" id="settingExtImportMode">
+          <option value="append" selected>➕ เพิ่มต่อท้าย / อัปเดตตารางเดิม (ไม่ลบทับของเก่า)</option>
+          <option value="overwrite">🔄 ลบตารางเดิมแล้วแทนที่ใหม่ทั้งหมด (Overwrite)</option>
+        </select>
+
         <button class="btn-save-settings" style="background:#059669;" onclick="saveAndSyncExternalSheet()">🔄 บันทึก &
           ดึงข้อมูลเข้าสู่ระบบทันที</button>
       </div>
@@ -968,6 +974,12 @@
         <option value="15">15 แต้ม</option>
       </select>
 
+      <label class="form-label">รูปแบบการนำเข้าข้อมูล:</label>
+      <select class="form-input" id="modalExtImportMode">
+        <option value="append" selected>➕ เพิ่มต่อท้าย / อัปเดตตารางเดิม (ไม่ลบทับของเก่า)</option>
+        <option value="overwrite">🔄 ลบตารางเดิมแล้วแทนที่ใหม่ทั้งหมด (Overwrite)</option>
+      </select>
+
       <div class="modal-buttons">
         <button class="btn-save-settings" style="background:#059669;" onclick="submitImportExternal()">🔄
           ดึงข้อมูลทันที</button>
@@ -986,6 +998,31 @@
     var urlParams = new URLSearchParams(window.location.search);
     var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
     var liveData = null;
+
+    // Real-time BroadcastChannel สำหรับ OBS & Courtside บนเครื่องเดียวกัน (0ms latency)
+    var liveChannel = null;
+    try {
+      liveChannel = new BroadcastChannel('badminton_live_sync');
+    } catch(e) {}
+
+    function broadcastLive(data) {
+      if (liveChannel && data) {
+        try {
+          liveChannel.postMessage({ type: 'LIVE_UPDATE', data: data });
+        } catch(e) {}
+      }
+    }
+
+    // ตัวแปรป้องกัน Race Condition & Stale Polling
+    var localMutationVersion = 0;
+    var lastMutationTime = 0;
+    var localHistory = [];
+
+    function saveLocalSnapshot() {
+      if (!liveData) return;
+      localHistory.push(JSON.parse(JSON.stringify(liveData)));
+      if (localHistory.length > 50) localHistory.shift();
+    }
 
     // Tab Switcher
     function switchTab(tabId) {
@@ -1013,6 +1050,9 @@
         document.getElementById('settingExtTabName').value = localStorage.getItem('ext_tab_name') || 'Data';
         document.getElementById('settingExtCourtFilter').value = localStorage.getItem('ext_court_filter') || '';
         document.getElementById('settingExtPtsMode').value = localStorage.getItem('ext_pts_mode') || '21';
+        if (document.getElementById('settingExtImportMode')) {
+          document.getElementById('settingExtImportMode').value = localStorage.getItem('ext_import_mode') || 'append';
+        }
         if (liveData) {
           document.getElementById('settingTourName').value = liveData.tournament_name || '';
           document.getElementById('settingTourLogo').value = liveData.tournament_logo || '';
@@ -1055,6 +1095,7 @@
 
     // Render Live Tab
     function renderLive(d) {
+      if (!d) return;
       liveData = d;
       var pts = Number(d.points_mode) === 15 ? 15 : 21;
 
@@ -1117,40 +1158,133 @@
       } else {
         badge.className = 'banner-badge';
       }
+
+      // ส่งต่อไปยัง OBS Overlay / จอข้างสนามทันที
+      broadcastLive(liveData);
     }
 
     // Change Points Mode 15 or 21
     function changePointsMode(pts) {
-      if (liveData && liveData.points_mode === pts) return;
+      if (!liveData || liveData.points_mode === pts) return;
+      saveLocalSnapshot();
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      liveData.points_mode = pts;
+      renderLive(liveData);
+
+      var curVer = localMutationVersion;
       apiCall('setPointsMode', { points_mode: pts })
-        .then(renderLive)
+        .then(function(d) {
+          if (localMutationVersion === curVer) renderLive(d);
+        })
         .catch(function (err) { alert('เกิดข้อผิดพลาด: ' + err); });
     }
 
-    // Controller Actions
+    // Controller Actions (Optimistic UI: แสดงผล 0ms ทันที ไม่ต้องรอเน็ตเวิร์ก)
     function addScore(side) {
-      if (liveData) {
-        if (side === 'L') liveData.score_a++; else liveData.score_b++;
-        liveData.serving_side = side;
-        renderLive(liveData);
+      if (!liveData) return;
+      saveLocalSnapshot();
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      if (side === 'L') {
+        liveData.score_a++;
+        liveData.serving_side = 'L';
+      } else {
+        liveData.score_b++;
+        liveData.serving_side = 'R';
       }
-      apiCall('addPoint', { side: side }).then(renderLive).catch(function () { });
+      renderLive(liveData);
+
+      var curVer = localMutationVersion;
+      apiCall('addPoint', { side: side })
+        .then(function(d) {
+          if (localMutationVersion === curVer) {
+            renderLive(d);
+          }
+        })
+        .catch(function () { });
     }
 
     function undoScore() {
-      apiCall('undoPoint').then(renderLive).catch(function () { });
+      if (!liveData) return;
+      saveLocalSnapshot();
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      // ดึงประวัติก่อนหน้าในเครื่องมาแสดงผลทันที 0ms
+      if (localHistory.length > 0) {
+        var prev = localHistory.pop();
+        liveData = prev;
+        renderLive(liveData);
+      }
+
+      var curVer = localMutationVersion;
+      apiCall('undoPoint')
+        .then(function(d) {
+          if (localMutationVersion === curVer) {
+            renderLive(d);
+          }
+        })
+        .catch(function () { });
     }
 
     function setServe(side) {
-      if (liveData) {
-        liveData.serving_side = side;
-        renderLive(liveData);
-      }
-      apiCall('setServe', { side: side }).then(renderLive).catch(function () { });
+      if (!liveData) return;
+      saveLocalSnapshot();
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      liveData.serving_side = side;
+      renderLive(liveData);
+
+      var curVer = localMutationVersion;
+      apiCall('setServe', { side: side })
+        .then(function(d) {
+          if (localMutationVersion === curVer) {
+            renderLive(d);
+          }
+        })
+        .catch(function () { });
     }
 
     function switchSide() {
-      apiCall('switchSide').then(renderLive).catch(function () { });
+      if (!liveData) return;
+      saveLocalSnapshot();
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      // สลับฝั่งทันทีในเครื่อง 0ms
+      var tempTeam = liveData.team_a_name;
+      liveData.team_a_name = liveData.team_b_name;
+      liveData.team_b_name = tempTeam;
+
+      var tempP1 = liveData.player_a1;
+      liveData.player_a1 = liveData.player_b1;
+      liveData.player_b1 = tempP1;
+
+      var tempP2 = liveData.player_a2;
+      liveData.player_a2 = liveData.player_b2;
+      liveData.player_b2 = tempP2;
+
+      var tempScore = liveData.score_a;
+      liveData.score_a = liveData.score_b;
+      liveData.score_b = tempScore;
+
+      if (liveData.serving_side === 'L') liveData.serving_side = 'R';
+      else if (liveData.serving_side === 'R') liveData.serving_side = 'L';
+
+      renderLive(liveData);
+
+      var curVer = localMutationVersion;
+      apiCall('switchSide')
+        .then(function(d) {
+          if (localMutationVersion === curVer) {
+            renderLive(d);
+          }
+        })
+        .catch(function () { });
     }
 
     function confirmReset() {
@@ -1325,6 +1459,9 @@
       document.getElementById('modalExtTabName').value = localStorage.getItem('ext_tab_name') || 'Data';
       document.getElementById('modalExtCourtFilter').value = localStorage.getItem('ext_court_filter') || '';
       document.getElementById('modalExtPtsMode').value = localStorage.getItem('ext_pts_mode') || '21';
+      if (document.getElementById('modalExtImportMode')) {
+        document.getElementById('modalExtImportMode').value = localStorage.getItem('ext_import_mode') || 'append';
+      }
       document.getElementById('importSheetModal').classList.add('active');
     }
 
@@ -1333,6 +1470,7 @@
       var tab = document.getElementById('modalExtTabName').value.trim() || 'Data';
       var court = document.getElementById('modalExtCourtFilter').value.trim();
       var pts = document.getElementById('modalExtPtsMode').value;
+      var mode = document.getElementById('modalExtImportMode') ? document.getElementById('modalExtImportMode').value : 'append';
 
       if (!url) {
         alert('กรุณาใส่ลิงก์ Google Sheet ตารางแข่ง');
@@ -1343,6 +1481,7 @@
       localStorage.setItem('ext_tab_name', tab);
       localStorage.setItem('ext_court_filter', court);
       localStorage.setItem('ext_pts_mode', pts);
+      localStorage.setItem('ext_import_mode', mode);
 
       closeModal('importSheetModal');
 
@@ -1353,10 +1492,16 @@
         sheet_url: url,
         tab_name: tab,
         court_filter: court,
-        points_mode: pts
+        points_mode: pts,
+        import_mode: mode
       })
         .then(function (res) {
-          alert('✅ ดึงข้อมูลสำเร็จ!\nนำเข้า: ' + res.imported_count + ' แมตช์\nคอร์ท: ' + res.court_filter + '\nแท็บ: ' + res.tab_used);
+          var modeLabel = (res.mode === 'overwrite') ? 'โหมดแทนที่ทั้งหมด' : 'โหมดเพิ่มต่อท้าย & อัปเดต (ไม่ลบทับของเก่า)';
+          var msg = '✅ ดึงข้อมูลสำเร็จ!\n' + modeLabel + '\nรายการที่พบในชีต: ' + res.imported_count + ' แมตช์';
+          if (res.added_count !== undefined) msg += '\n- เพิ่มใหม่: ' + res.added_count + ' แมตช์';
+          if (res.updated_count !== undefined) msg += '\n- อัปเดตข้อมูลเดิม: ' + res.updated_count + ' แมตช์';
+          msg += '\nคอร์ท: ' + res.court_filter + '\nแท็บ: ' + res.tab_used;
+          alert(msg);
           fetchSchedule();
         })
         .catch(function (err) {
@@ -1370,6 +1515,7 @@
       var tab = document.getElementById('settingExtTabName').value.trim() || 'Data';
       var court = document.getElementById('settingExtCourtFilter').value.trim();
       var pts = document.getElementById('settingExtPtsMode').value;
+      var mode = document.getElementById('settingExtImportMode') ? document.getElementById('settingExtImportMode').value : 'append';
 
       if (!url) {
         alert('กรุณาใส่ลิงก์ Google Sheet');
@@ -1380,15 +1526,21 @@
       localStorage.setItem('ext_tab_name', tab);
       localStorage.setItem('ext_court_filter', court);
       localStorage.setItem('ext_pts_mode', pts);
+      localStorage.setItem('ext_import_mode', mode);
 
       apiCall('importExternalSchedule', {
         sheet_url: url,
         tab_name: tab,
         court_filter: court,
-        points_mode: pts
+        points_mode: pts,
+        import_mode: mode
       })
         .then(function (res) {
-          alert('✅ บันทึกและดึงข้อมูลสำเร็จ!\nนำเข้า: ' + res.imported_count + ' แมตช์\nคอร์ท: ' + res.court_filter);
+          var modeLabel = (res.mode === 'overwrite') ? 'โหมดแทนที่ทั้งหมด' : 'โหมดเพิ่มต่อท้าย & อัปเดต (ไม่ลบทับของเก่า)';
+          var msg = '✅ บันทึกและดึงข้อมูลสำเร็จ!\n' + modeLabel + '\nรายการที่พบ: ' + res.imported_count + ' แมตช์';
+          if (res.added_count !== undefined) msg += '\n- เพิ่มใหม่: ' + res.added_count + ' แมตช์';
+          if (res.updated_count !== undefined) msg += '\n- อัปเดตข้อมูลเดิม: ' + res.updated_count + ' แมตช์';
+          alert(msg);
           switchTab('schedule');
         })
         .catch(function (err) {
@@ -1422,12 +1574,31 @@
         .catch(function (err) { alert('เกิดข้อผิดพลาด: ' + err); });
     }
 
-    // Background Live Polling
+    // Background Live Polling พร้อมระบบป้องกัน Stale Data ทับคะแนนใหม่
+    var isPollingLive = false;
     function fetchLive() {
-      if (!apiUrl) return;
+      if (!apiUrl || isPollingLive) return;
+      isPollingLive = true;
+
       apiCall('getLive')
-        .then(renderLive)
-        .catch(function () { });
+        .then(function(d) {
+          isPollingLive = false;
+          if (!d) return;
+
+          // ถ้าเพิ่งมีการกดคะแนนหรือควบคุมล่าสุดภายใน 1.5 วินาที
+          // และข้อมูลจากเซิร์ฟเวอร์ยังเก่ากว่าเวลาที่กด ให้ข้ามการเรนเดอร์เพื่อป้องกันคะแนนเด้งกลับ
+          var elapsedSinceAction = Date.now() - lastMutationTime;
+          if (elapsedSinceAction < 1500) {
+            if (d.server_time && d.server_time < lastMutationTime) {
+              return;
+            }
+          }
+
+          renderLive(d);
+        })
+        .catch(function () {
+          isPollingLive = false;
+        });
     }
 
     fetchLive();

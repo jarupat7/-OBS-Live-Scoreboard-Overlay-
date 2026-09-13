@@ -178,6 +178,33 @@ function doPost(e) {
 }
 
 function handleRequest(e) {
+  var params = e ? e.parameter : {};
+  var action = params.action || "getLive";
+  var postData = null;
+
+  if (e && e.postData && e.postData.contents) {
+    try {
+      postData = JSON.parse(e.postData.contents);
+      if (postData.action) action = postData.action;
+    } catch (err) {}
+  }
+
+  // 1. FAST CACHE PATH FOR getLive: ส่งผลลัพธ์จาก Cache ทันทีในเสี้ยววินาที ไม่ต้องรอ LockService
+  if (action === "getLive") {
+    try {
+      var cache = CacheService.getScriptCache();
+      var cachedStr = cache.get("live_match_data");
+      if (cachedStr) {
+        var cachedData = JSON.parse(cachedStr);
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          data: cachedData
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    } catch(err) {}
+  }
+
+  // 2. สำหรับคำสั่งอื่นๆ หรือกรณี Cache Miss ให้ใช้ LockService เพื่อป้องกัน Race Condition ในการเขียน
   var lock = LockService.getScriptLock();
   lock.tryLock(10000);
   
@@ -192,17 +219,6 @@ function handleRequest(e) {
       liveSheet = ss.getSheetByName("LiveMatch");
       schedSheet = ss.getSheetByName("Schedule");
       histSheet = ss.getSheetByName("MatchHistory");
-    }
-
-    var params = e ? e.parameter : {};
-    var action = params.action || "getLive";
-    var postData = null;
-
-    if (e && e.postData && e.postData.contents) {
-      try {
-        postData = JSON.parse(e.postData.contents);
-        if (postData.action) action = postData.action;
-      } catch (err) {}
     }
 
     var result = { success: true };
@@ -254,7 +270,8 @@ function handleRequest(e) {
       var tabName = params.tab_name || (postData ? postData.tab_name : "Data");
       var courtFilter = params.court_filter || (postData ? postData.court_filter : "");
       var defaultPts = Number(params.points_mode || (postData ? postData.points_mode : 15));
-      var clearOld = params.clear_old !== undefined ? (params.clear_old === "true" || params.clear_old === true) : true;
+      var importMode = params.import_mode || (postData ? postData.import_mode : "append");
+      var clearOld = (importMode === "overwrite" || params.clear_old === "true" || params.clear_old === true);
       
       result.data = importFromExternalSheet(schedSheet, sheetUrl, tabName, courtFilter, defaultPts, clearOld);
     }
@@ -294,7 +311,7 @@ function getLiveMatchData(sheet) {
   var pointsMode = Number(data[4]);
   if (pointsMode !== 15 && pointsMode !== 21) pointsMode = 21;
 
-  return {
+  var liveData = {
     tournament_name: data[0] || "",
     tournament_logo: data[1] || "",
     match_id: data[2] || "",
@@ -320,8 +337,15 @@ function getLiveMatchData(sheet) {
     status_banner: data[22] || "NONE",
     serving_side: data[23] || "NONE",
     history: hist,
-    updated_at: data[25]
+    updated_at: data[25],
+    server_time: Date.now()
   };
+
+  try {
+    CacheService.getScriptCache().put("live_match_data", JSON.stringify(liveData), 21600);
+  } catch(e) {}
+
+  return liveData;
 }
 
 function updateLiveMatchData(sheet, d) {
@@ -331,13 +355,22 @@ function updateLiveMatchData(sheet, d) {
   var pts = Number(merged.points_mode);
   if (pts !== 15 && pts !== 21) pts = 21;
   
+  merged.points_mode = pts;
+  merged.server_time = Date.now();
+  merged.updated_at = new Date();
+
+  // อัปเดต Cache ทันที เพื่อให้การอ่านครั้งถัดไปได้รับข้อมูลใหม่ทันที
+  try {
+    CacheService.getScriptCache().put("live_match_data", JSON.stringify(merged), 21600);
+  } catch(e) {}
+
   var rowData = [
     merged.tournament_name, merged.tournament_logo, merged.match_id, merged.match_mode, pts, merged.match_type, merged.court,
     merged.team_a_name, merged.team_b_name, merged.player_a1, merged.player_a2, merged.player_b1, merged.player_b2,
     merged.s1_a, merged.s1_b, merged.s2_a, merged.s2_b, merged.s3_a, merged.s3_b,
     merged.active_set, merged.score_a, merged.score_b, merged.status_banner, merged.serving_side,
     typeof merged.history === 'string' ? merged.history : JSON.stringify(merged.history),
-    new Date()
+    merged.updated_at
   ];
   sheet.getRange(2, 1, 1, 26).setValues([rowData]);
 }
@@ -726,7 +759,7 @@ function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, 
     idxPlayerB2 = player2Cols[1];
   }
 
-  // 3. จัดการล้างตาราง Schedule เดิมและล้าง Data Validation เพื่อป้องกันข้อผิดพลาด
+  // 3. จัดการล้างตารางกรณี overwrite
   try {
     var maxRows = schedSheet.getMaxRows();
     if (maxRows > 1) {
@@ -816,23 +849,80 @@ function importFromExternalSheet(schedSheet, externalUrl, tabName, courtFilter, 
     ]);
   }
 
-  // เขียนแถวที่นำเข้าลงในชีต Schedule
+  var addedCount = 0;
+  var updatedCount = 0;
+
+  // 4. เขียนแถวที่นำเข้าลงในชีต Schedule
   if (importedRows.length > 0) {
-    schedSheet.getRange(2, 1, importedRows.length, 13).setValues(importedRows);
-    
-    // ตั้งค่า Data Validation แบบปลอดภัย (allowInvalid = true) เพื่อไม่ให้เกิด Error
+    if (clearOld) {
+      // โหมดแทนที่ทั้งหมด (Overwrite): เขียนเริ่มจากแถว 2
+      schedSheet.getRange(2, 1, importedRows.length, 13).setValues(importedRows);
+      addedCount = importedRows.length;
+    } else {
+      // โหมดเพิ่มต่อท้ายและอัปเดต (Append & Merge): ไม่ลบของเก่า
+      var existingData = schedSheet.getDataRange().getValues();
+      var existingMap = {}; // match_id -> { rowNum, data }
+      for (var ex = 1; ex < existingData.length; ex++) {
+        var exId = String(existingData[ex][0]).trim();
+        if (exId) {
+          existingMap[exId] = {
+            rowNum: ex + 1,
+            data: existingData[ex]
+          };
+        }
+      }
+
+      var rowsToAppend = [];
+      for (var imp = 0; imp < importedRows.length; imp++) {
+        var item = importedRows[imp];
+        var targetId = item[0];
+
+        if (existingMap[targetId]) {
+          // มี Match ID นี้อยู่แล้วในตารางเดิม: ให้อัปเดตข้อมูล แต่คงสถานะเดิม (In Progress / Finished) ไว้
+          var exObj = existingMap[targetId];
+          var exStatus = String(exObj.data[10] || "Upcoming").trim();
+          var exWinner = String(exObj.data[11] || "").trim();
+          var exFinalScore = String(exObj.data[12] || "").trim();
+
+          // คงสถานะเดิมไว้หากมีการเริ่มแข่งหรือแข่งเสร็จแล้ว
+          item[10] = exStatus || "Upcoming";
+          item[11] = exWinner;
+          item[12] = exFinalScore;
+
+          schedSheet.getRange(exObj.rowNum, 1, 1, 13).setValues([item]);
+          updatedCount++;
+        } else {
+          // เป็น Match ID ใหม่: เพิ่มต่อท้าย
+          rowsToAppend.push(item);
+          addedCount++;
+        }
+      }
+
+      if (rowsToAppend.length > 0) {
+        var currentLast = schedSheet.getLastRow();
+        schedSheet.getRange(currentLast + 1, 1, rowsToAppend.length, 13).setValues(rowsToAppend);
+      }
+    }
+
+    // ตั้งค่า Data Validation แบบปลอดภัย (allowInvalid = true)
     try {
-      var statusRule = SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Upcoming', 'In Progress', 'Finished'], true)
-        .setAllowInvalid(true)
-        .build();
-      schedSheet.getRange(2, 11, importedRows.length, 1).setDataValidation(statusRule);
+      var totalRows = schedSheet.getLastRow();
+      if (totalRows > 1) {
+        var statusRule = SpreadsheetApp.newDataValidation()
+          .requireValueInList(['Upcoming', 'In Progress', 'Finished'], true)
+          .setAllowInvalid(true)
+          .build();
+        schedSheet.getRange(2, 11, totalRows - 1, 1).setDataValidation(statusRule);
+      }
     } catch(e) {}
   }
 
   return {
     success: true,
     imported_count: importedRows.length,
+    added_count: addedCount,
+    updated_count: updatedCount,
+    mode: clearOld ? "overwrite" : "append",
     tab_used: extSheet.getName(),
     court_filter: courtFilter || "ทั้งหมด",
     schedule: getScheduleData(schedSheet)

@@ -614,6 +614,16 @@
           });
       }
 
+      // Real-time BroadcastChannel listener (0ms latency from referee controller on same device)
+      try {
+        var liveChannel = new BroadcastChannel('badminton_live_sync');
+        liveChannel.onmessage = function (ev) {
+          if (ev.data && ev.data.type === 'LIVE_UPDATE' && ev.data.data) {
+            renderData(ev.data.data);
+          }
+        };
+      } catch(e) {}
+
       fetchData();
       setInterval(fetchData, 1000);
     })();
