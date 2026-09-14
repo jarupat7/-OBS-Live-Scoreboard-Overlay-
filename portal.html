@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base target="_top">
   <title>Badminton Tournament Hub - ศูนย์รวมระบบคะแนนถ่ายทอดสด</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -345,7 +346,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a class="btn-open" id="linkPhone" href="?page=scorephone" target="_blank"><span>📲</span> เปิดใช้งาน</a>
+          <a class="btn-open" id="linkPhone" href="https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec?page=scorephone" target="_blank"><span>📲</span> เปิดใช้งาน</a>
           <button class="btn-copy" onclick="copyPageUrl('scorephone')">📋 คัดลอก</button>
         </div>
       </div>
@@ -362,7 +363,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a class="btn-open" id="linkReferee" href="?page=referee" target="_blank"><span>🖥️</span> เปิดใช้งาน</a>
+          <a class="btn-open" id="linkReferee" href="https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec?page=referee" target="_blank"><span>🖥️</span> เปิดใช้งาน</a>
           <button class="btn-copy" onclick="copyPageUrl('referee')">📋 คัดลอก</button>
         </div>
       </div>
@@ -379,7 +380,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a class="btn-open" id="linkBarname" href="?page=barname" target="_blank"><span>📺</span> เปิดดูตัวอย่าง</a>
+          <a class="btn-open" id="linkBarname" href="https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec?page=barname" target="_blank"><span>📺</span> เปิดดูตัวอย่าง</a>
           <button class="btn-copy" onclick="copyPageUrl('barname')">📋 ก็อปใส่ OBS</button>
         </div>
       </div>
@@ -396,7 +397,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a class="btn-open" id="linkOverlay" href="?page=overlay" target="_blank"><span>📺</span> เปิดดูตัวอย่าง</a>
+          <a class="btn-open" id="linkOverlay" href="https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec?page=overlay" target="_blank"><span>📺</span> เปิดดูตัวอย่าง</a>
           <button class="btn-copy" onclick="copyPageUrl('overlay')">📋 ก็อปใส่ OBS</button>
         </div>
       </div>
@@ -413,7 +414,7 @@
           </div>
         </div>
         <div class="card-actions">
-          <a class="btn-open" id="linkCourt" href="?page=courtside" target="_blank"><span>🖥️</span> เปิดใช้งาน</a>
+          <a class="btn-open" id="linkCourt" href="https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec?page=courtside" target="_blank"><span>🖥️</span> เปิดใช้งาน</a>
           <button class="btn-copy" onclick="copyPageUrl('courtside')">📋 คัดลอก</button>
         </div>
       </div>
@@ -429,9 +430,23 @@
   <div class="toast" id="hubToast">คัดลอกลิงก์สำเร็จ</div>
 
   <script>
-    // Get Base Web App URL (Prioritize injected webAppUrl from Google Apps Script)
-    const INJECTED_URL = (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl : '';
-    const BASE_URL = INJECTED_URL || window.location.href.split('?')[0];
+    const CANONICAL_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec";
+
+    function resolveBaseUrl() {
+      // 1. Injected via Google Apps Script template evaluate
+      var injected = "<?!= typeof webAppUrl !== 'undefined' ? webAppUrl : '' ?>";
+      if (injected && injected.indexOf("<?") === -1 && injected.indexOf("http") === 0) {
+        return injected.split('?')[0];
+      }
+      // 2. If opened on script.google.com directly
+      if (window.location.href.indexOf("script.google.com") !== -1) {
+        return window.location.href.split('?')[0];
+      }
+      // 3. Fallback to canonical Web App URL (Never use googleusercontent.com iframe host!)
+      return CANONICAL_URL;
+    }
+
+    const BASE_URL = resolveBaseUrl();
 
     // Update Links dynamically
     document.getElementById('linkPhone').href = BASE_URL + '?page=scorephone';

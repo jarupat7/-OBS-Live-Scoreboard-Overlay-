@@ -340,9 +340,15 @@ function doGet(e) {
 }
 
 function renderPage(fileName, title, fallbackFile) {
+  var webAppUrl = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec";
+  try {
+    var u = ScriptApp.getService().getUrl();
+    if (u) webAppUrl = u;
+  } catch(e) {}
+
   try {
     var template = HtmlService.createTemplateFromFile(fileName);
-    template.webAppUrl = ScriptApp.getService().getUrl();
+    template.webAppUrl = webAppUrl;
     return template.evaluate()
       .setTitle(title)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
@@ -351,7 +357,7 @@ function renderPage(fileName, title, fallbackFile) {
     if (fallbackFile) {
       try {
         var t2 = HtmlService.createTemplateFromFile(fallbackFile);
-        t2.webAppUrl = ScriptApp.getService().getUrl();
+        t2.webAppUrl = webAppUrl;
         return t2.evaluate()
           .setTitle(title)
           .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
@@ -359,6 +365,7 @@ function renderPage(fileName, title, fallbackFile) {
       } catch(err2) {}
     }
     return HtmlService.createHtmlOutput(
+      "<base target='_top'>" +
       "<div style='font-family:sans-serif;padding:30px;background:#090d16;color:#f8fafc;min-height:100vh;'>" +
       "<h2 style='color:#38bdf8;'>🏸 ระบบคะแนนถ่ายทอดสดแบดมินตัน</h2>" +
       "<p style='color:#f87171;font-size:16px;'>⚠️ กำลังเปิดหน้า: <b>" + fileName + "</b> แต่ยังไม่พบไฟล์นี้ใน Apps Script Editor</p>" +
@@ -372,11 +379,12 @@ function renderPage(fileName, title, fallbackFile) {
       "</ol></div>" +
       "<h4 style='margin-top:20px;'>🔗 ลิงก์หน้าระบบทั้งหมด:</h4>" +
       "<ul style='line-height:2;margin-left:20px;'>" +
-      "<li><a style='color:#38bdf8;' href='?page=scorephone'>📱 หน้าจอกดคะแนนบนมือถือ (scorephone)</a></li>" +
-      "<li><a style='color:#38bdf8;' href='?page=referee'>📡 หน้าจอคุมแมตช์ของกรรมการ (referee)</a></li>" +
-      "<li><a style='color:#38bdf8;' href='?page=barname'>🏸 แถบชื่อนักกีฬา OBS 200px (barname)</a></li>" +
-      "<li><a style='color:#38bdf8;' href='?page=overlay'>📺 สกอร์บอร์ดมุมจอ OBS (overlay)</a></li>" +
-      "<li><a style='color:#38bdf8;' href='?page=courtside'>🏟️ จอแสดงคะแนนข้างสนาม (courtside)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='" + webAppUrl + "?page=scorephone'>📱 หน้าจอกดคะแนนบนมือถือ (scorephone)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='" + webAppUrl + "?page=referee'>📡 หน้าจอคุมแมตช์ของกรรมการ (referee)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='" + webAppUrl + "?page=barname'>🏸 แถบชื่อนักกีฬา OBS 200px (barname)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='" + webAppUrl + "?page=overlay'>📺 สกอร์บอร์ดมุมจอ OBS (overlay)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='" + webAppUrl + "?page=courtside'>🏟️ จอแสดงคะแนนข้างสนาม (courtside)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='" + webAppUrl + "'>🌐 หน้าหลักรวมทุกลิงก์ (Hub)</a></li>" +
       "</ul></div>"
     )
     .setTitle(title)
