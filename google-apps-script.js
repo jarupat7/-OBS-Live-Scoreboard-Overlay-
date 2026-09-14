@@ -171,7 +171,7 @@ function addSampleData() {
 // -------------------------------------------------------------
 // Google Drive Match Photos Helper (จับคู่รูปภาพด้วย Match ID + A, B)
 // -------------------------------------------------------------
-var DEFAULT_DRIVE_FOLDER_ID = ""; // ใส่ Folder ID หรือ ลิงก์โฟลเดอร์ Google Drive ได้ที่นี่
+var DEFAULT_DRIVE_FOLDER_ID = "1G2TfyeJhJyOeGiBSWmlMhehG4L2J_Bug"; // โฟลเดอร์ Google Drive รูปภาพนักกีฬา
 
 function extractDriveFolderId(input) {
   if (!input) return "";
@@ -198,7 +198,9 @@ function getDriveFolderPhotosMap(folderId) {
   try {
     var folder = DriveApp.getFolderById(folderId);
     var files = folder.getFiles();
-    while (files.hasNext()) {
+    var count = 0;
+    while (files.hasNext() && count < 500) {
+      count++;
       var file = files.next();
       var name = file.getName();
       // ตัดนามสกุลไฟล์ออก เช่น 194_A.png -> 194_A
@@ -429,9 +431,15 @@ function handleRequest(e) {
         PropertiesService.getScriptProperties().setProperty("drive_folder_id", fId);
         CacheService.getScriptCache().remove("drive_photos_map_" + fId);
         CacheService.getScriptCache().remove("live_match_data");
-        var newMap = getDriveFolderPhotosMap(fId);
+        var total = 0;
+        try {
+          var newMap = getDriveFolderPhotosMap(fId);
+          total = Object.keys(newMap).length;
+        } catch(de) {
+          Logger.log("Drive map error: " + de);
+        }
         result.folder_id = fId;
-        result.total_photos = Object.keys(newMap).length;
+        result.total_photos = total;
       } else {
         result.success = false;
         result.error = "Invalid folder ID";
@@ -441,9 +449,15 @@ function handleRequest(e) {
       var fId = PropertiesService.getScriptProperties().getProperty("drive_folder_id") || DEFAULT_DRIVE_FOLDER_ID || "";
       CacheService.getScriptCache().remove("drive_photos_map_" + fId);
       CacheService.getScriptCache().remove("live_match_data");
-      var newMap = getDriveFolderPhotosMap(fId);
+      var total = 0;
+      try {
+        var newMap = getDriveFolderPhotosMap(fId);
+        total = Object.keys(newMap).length;
+      } catch(de) {
+        Logger.log("Drive map error: " + de);
+      }
       result.folder_id = fId;
-      result.total_photos = Object.keys(newMap).length;
+      result.total_photos = total;
     }
     else {
       result.success = false;

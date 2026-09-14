@@ -886,7 +886,7 @@
           * ตั้งชื่อรูปใน Drive เป็น <b>เลขแมตช์+A,B</b> เช่น <code>194_A.png</code>, <code>194_B.png</code> (ประเภทคู่: <code>194_A1.png</code>, <code>194_A2.png</code>)<br>
           * อย่าลืมเปิดแชร์โฟลเดอร์ใน Drive เป็น <b>"ทุกคนที่มีลิงก์มีสิทธิ์ดู"</b>
         </p>
-        <button class="btn-save-settings" style="background:#0284c7;" onclick="saveDriveFolderSetting()">💾 บันทึก & ซิงค์รูปภาพ Drive</button>
+        <button id="btnSaveDriveFolder" class="btn-save-settings" style="background:#0284c7;" onclick="saveDriveFolderSetting()">💾 บันทึก & ซิงค์รูปภาพ Drive</button>
       </div>
     </div>
 
@@ -1076,7 +1076,7 @@
 
     // API Call Wrapper พร้อมระบบ Tolerance ป้องกันไฟสถานะกระพริบ และ Timeout
     var consecutiveErrors = 0;
-    function apiCall(action, params) {
+    function apiCall(action, params, timeoutMs) {
       if (!apiUrl) {
         alert('กรุณาตั้งค่า Google Apps Script API URL ในแท็บ "ตั้งค่า" ก่อนใช้งานครับ');
         switchTab('settings');
@@ -1090,12 +1090,13 @@
         }
       }
 
+      var timeoutDuration = timeoutMs || (action === 'getLive' ? 8000 : 35000);
       var controller = null;
       var timeoutId = null;
       try {
         if (typeof AbortController !== 'undefined') {
           controller = new AbortController();
-          timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+          timeoutId = setTimeout(function () { controller.abort(); }, timeoutDuration);
         }
       } catch(e) {}
 
@@ -1614,14 +1615,30 @@
         alert('กรุณาใส่ลิงก์หรือ ID โฟลเดอร์ Google Drive ครับ');
         return;
       }
+
+      var btn = document.getElementById('btnSaveDriveFolder');
+      var oldText = btn ? btn.textContent : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ กำลังซิงค์รูปภาพจาก Google Drive...';
+      }
+
       localStorage.setItem('badminton_drive_folder', val);
-      apiCall('setDriveFolder', { folder_id: val })
+      apiCall('setDriveFolder', { folder_id: val }, 45000)
         .then(function(res) {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = oldText;
+          }
           alert('✅ บันทึกโฟลเดอร์ Google Drive เรียบร้อยแล้ว!\nFolder ID: ' + res.folder_id + '\nพบไฟล์รูปภาพในโฟลเดอร์: ' + (res.total_photos || 0) + ' รูป');
           fetchLive();
         })
         .catch(function(err) {
-          alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Drive: ' + err);
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = oldText;
+          }
+          alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Drive: ' + err + '\n\n💡 คำแนะนำ: หากเพิ่งอัปเดตโค้ด Apps Script ให้ไปที่ Google Sheets แล้วกดเมนู "🏸 ระบบคะแนนแบดมินตัน" > "📁 ตั้งค่าโฟลเดอร์รูป Drive" 1 ครั้งเพื่อกดยอมรับสิทธิ์ (Review permissions) ของ Google Drive ครับ');
         });
     }
 
