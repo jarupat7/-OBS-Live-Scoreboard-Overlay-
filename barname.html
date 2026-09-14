@@ -55,26 +55,57 @@
     }
 
     /* -------------------------------------------
-       1. TOP HEADER (LIVE STREAM / TOURNAMENT)
+       1. TOP AVATAR STAGE (FLOATING ABOVE BAR)
     ------------------------------------------- */
-    .top-pill-bar {
+    .avatar-top-stage {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      width: 100%;
+      align-items: flex-end;
+      margin-bottom: -32px;
+      position: relative;
+      z-index: 25;
+      padding: 0 20px;
+    }
+
+    .avatar-pod {
       display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      position: relative;
+    }
+
+    .side-a-pod {
+      justify-content: center;
+    }
+
+    .side-b-pod {
+      justify-content: center;
+    }
+
+    .center-pill-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      padding: 0 14px;
+      margin-bottom: 38px;
+    }
+
+    .top-pill-bar {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-      border: 1.5px solid rgba(255, 255, 255, 0.22);
-      border-bottom: none;
-      border-radius: 12px 12px 0 0;
-      padding: 6px 36px;
-      font-size: 14px;
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      border-radius: 20px;
+      padding: 6px 24px;
+      font-size: 13px;
       font-weight: 800;
       letter-spacing: 2px;
       color: #f8fafc;
       text-transform: uppercase;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-      position: relative;
-      z-index: 5;
-      margin-bottom: -4px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      white-space: nowrap;
     }
 
     .top-pill-bar .live-dot {
@@ -90,6 +121,58 @@
     @keyframes pulseDot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    /* -------------------------------------------
+       AVATAR CIRCLES (LARGE NEON)
+    ------------------------------------------- */
+    .avatar-circle {
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #090e17;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Singles size: 135px */
+    .avatar-circle.singles-size {
+      width: 135px;
+      height: 135px;
+      min-width: 135px;
+    }
+
+    /* Doubles size: 114px */
+    .avatar-circle.doubles-size {
+      width: 114px;
+      height: 114px;
+      min-width: 114px;
+    }
+
+    .avatar-circle.blue-glow {
+      border: 4px solid #38bdf8;
+      box-shadow: 
+        0 0 28px rgba(56, 189, 248, 0.95),
+        inset 0 0 14px rgba(56, 189, 248, 0.45),
+        0 8px 24px rgba(0, 0, 0, 0.9);
+    }
+
+    .avatar-circle.red-glow {
+      border: 4px solid #ef4444;
+      box-shadow: 
+        0 0 28px rgba(239, 68, 68, 0.95),
+        inset 0 0 14px rgba(239, 68, 68, 0.45),
+        0 8px 24px rgba(0, 0, 0, 0.9);
+    }
+
+    .avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
     }
 
     /* -------------------------------------------
@@ -138,25 +221,24 @@
     ------------------------------------------- */
     .team-slot {
       position: relative;
-      padding: 12px 20px;
+      padding: 38px 18px 16px 18px;
       border-radius: 14px;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      gap: 16px;
+      text-align: center;
       overflow: hidden;
-      min-height: 120px;
+      min-height: 110px;
     }
 
     /* SIDE A: BLUE NEON */
     .team-slot.side-a {
-      background: radial-gradient(circle at 0% 50%, rgba(14, 165, 233, 0.38) 0%, rgba(8, 20, 38, 0.95) 75%);
+      background: radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.42) 0%, rgba(8, 20, 38, 0.95) 75%);
       border: 2px solid #0284c7;
       box-shadow: 
         inset 0 0 28px rgba(2, 132, 199, 0.35),
         0 0 18px rgba(2, 132, 199, 0.25);
-      padding-left: 18px;
-      padding-right: 18px;
     }
 
     .team-slot.side-a::before {
@@ -172,13 +254,11 @@
 
     /* SIDE B: RED NEON */
     .team-slot.side-b {
-      background: radial-gradient(circle at 100% 50%, rgba(239, 68, 68, 0.38) 0%, rgba(38, 10, 18, 0.95) 75%);
+      background: radial-gradient(circle at 50% 0%, rgba(239, 68, 68, 0.42) 0%, rgba(38, 10, 18, 0.95) 75%);
       border: 2px solid #dc2626;
       box-shadow: 
         inset 0 0 28px rgba(220, 38, 38, 0.35),
         0 0 18px rgba(220, 38, 38, 0.25);
-      padding-left: 18px;
-      padding-right: 18px;
     }
 
     .team-slot.side-b::after {
@@ -192,82 +272,24 @@
       box-shadow: 0 0 14px #f87171;
     }
 
-    /* -------------------------------------------
-       AVATAR CONTAINERS & NEON CIRCLES
-    ------------------------------------------- */
-    .avatar-box {
-      display: flex;
-      align-items: center;
-      flex-shrink: 0;
-      position: relative;
-      z-index: 5;
-    }
-
-    .avatar-circle {
-      width: 78px;
-      height: 78px;
-      min-width: 78px;
-      border-radius: 50%;
-      overflow: hidden;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #090e17;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .avatar-circle.blue-glow {
-      border: 3px solid #38bdf8;
-      box-shadow: 
-        0 0 16px rgba(56, 189, 248, 0.85),
-        inset 0 0 10px rgba(56, 189, 248, 0.4);
-    }
-
-    .avatar-circle.red-glow {
-      border: 3px solid #ef4444;
-      box-shadow: 
-        0 0 16px rgba(239, 68, 68, 0.85),
-        inset 0 0 10px rgba(239, 68, 68, 0.4);
-    }
-
-    .avatar-circle img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: top center;
-      display: block;
-    }
-
-    /* Overlapping avatar for doubles */
-    .avatar-overlap {
-      margin-left: -26px;
-      position: relative;
-      z-index: 2;
-      box-shadow: -4px 0 14px rgba(0, 0, 0, 0.9);
-    }
-
     /* Text details layout */
     .team-info {
-      flex: 1;
-      min-width: 0;
+      width: 100%;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: center;
+      text-align: center;
     }
 
-    .side-a-info {
-      text-align: right;
-    }
-
-    .side-b-info {
-      text-align: left;
+    .side-a-info, .side-b-info {
+      text-align: center;
     }
 
     /* Team & Player Typography */
     .team-name {
       font-family: 'Chakra Petch', 'Kanit', sans-serif;
-      font-size: 29px;
+      font-size: 32px;
       font-weight: 900;
       letter-spacing: 0.5px;
       line-height: 1.15;
@@ -275,27 +297,29 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 100%;
       text-shadow: 0 3px 12px rgba(0, 0, 0, 0.9);
     }
 
     .side-a .team-name {
       color: #ffffff;
-      text-shadow: 0 0 16px rgba(56, 189, 248, 0.65);
+      text-shadow: 0 0 20px rgba(56, 189, 248, 0.85), 0 3px 8px rgba(0, 0, 0, 0.9);
     }
 
     .side-b .team-name {
       color: #ffffff;
-      text-shadow: 0 0 16px rgba(248, 113, 113, 0.65);
+      text-shadow: 0 0 20px rgba(248, 113, 113, 0.85), 0 3px 8px rgba(0, 0, 0, 0.9);
     }
 
     .player-names {
-      font-size: 19px;
+      font-size: 20px;
       font-weight: 700;
-      margin-top: 4px;
+      margin-top: 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       letter-spacing: 0.5px;
+      max-width: 100%;
     }
 
     .side-a .player-names {
@@ -472,10 +496,37 @@
   <!-- VS BROADCAST OVERLAY CONTAINER -->
   <div class="vs-broadcast-banner" id="bannerContainer" title="คลิก 3 ครั้งเพื่อตั้งค่า URL API">
     
-    <!-- TOP PILL: TOURNAMENT / COURT -->
-    <div class="top-pill-bar">
-      <span class="live-dot"></span>
-      <span id="topTournamentText">LIVE STREAM : BADMINTON TOURNAMENT</span>
+    <!-- TOP AVATAR STAGE (FLOATING ABOVE BAR) -->
+    <div class="avatar-top-stage">
+      
+      <!-- SIDE A AVATARS POD (BLUE) -->
+      <div class="avatar-pod side-a-pod" id="avatarPodA">
+        <div class="avatar-circle blue-glow" id="circleA1">
+          <img id="imgA1" src="" alt="A1" onerror="handleAvatarError(this, 'A')">
+        </div>
+        <div class="avatar-circle blue-glow" id="circleA2" style="display: none;">
+          <img id="imgA2" src="" alt="A2" onerror="handleAvatarError(this, 'A')">
+        </div>
+      </div>
+
+      <!-- CENTER PILL: TOURNAMENT / COURT -->
+      <div class="center-pill-wrapper">
+        <div class="top-pill-bar">
+          <span class="live-dot"></span>
+          <span id="topTournamentText">LIVE STREAM : BADMINTON TOURNAMENT</span>
+        </div>
+      </div>
+
+      <!-- SIDE B AVATARS POD (RED) -->
+      <div class="avatar-pod side-b-pod" id="avatarPodB">
+        <div class="avatar-circle red-glow" id="circleB1">
+          <img id="imgB1" src="" alt="B1" onerror="handleAvatarError(this, 'B')">
+        </div>
+        <div class="avatar-circle red-glow" id="circleB2" style="display: none;">
+          <img id="imgB2" src="" alt="B2" onerror="handleAvatarError(this, 'B')">
+        </div>
+      </div>
+
     </div>
 
     <!-- MAIN CHASSIS -->
@@ -488,14 +539,6 @@
       <div class="teams-grid">
         <!-- SIDE A (BLUE) -->
         <div class="team-slot side-a">
-          <div class="avatar-box side-a-avatar" id="avatarBoxA">
-            <div class="avatar-circle blue-glow" id="circleA1">
-              <img id="imgA1" src="" alt="A1" onerror="handleAvatarError(this, 'A')">
-            </div>
-            <div class="avatar-circle blue-glow avatar-overlap" id="circleA2" style="display: none;">
-              <img id="imgA2" src="" alt="A2" onerror="handleAvatarError(this, 'A')">
-            </div>
-          </div>
           <div class="team-info side-a-info">
             <div class="team-name" id="nameTeamA">TEAM A</div>
             <div class="player-names" id="namesPlayerA">นักกีฬา A1 / นักกีฬา A2</div>
@@ -515,14 +558,6 @@
           <div class="team-info side-b-info">
             <div class="team-name" id="nameTeamB">TEAM B</div>
             <div class="player-names" id="namesPlayerB">นักกีฬา B1 / นักกีฬา B2</div>
-          </div>
-          <div class="avatar-box side-b-avatar" id="avatarBoxB">
-            <div class="avatar-circle red-glow" id="circleB1">
-              <img id="imgB1" src="" alt="B1" onerror="handleAvatarError(this, 'B')">
-            </div>
-            <div class="avatar-circle red-glow avatar-overlap" id="circleB2" style="display: none;">
-              <img id="imgB2" src="" alt="B2" onerror="handleAvatarError(this, 'B')">
-            </div>
           </div>
         </div>
       </div>
@@ -673,17 +708,24 @@
         var ptsMode = Number(d.points_mode) === 15 ? 15 : 21;
         document.getElementById('pointsModeBadge').textContent = ptsMode + ' แต้ม (BEST OF 3)';
 
-        // 4. แสดงรูปภาพนีออน (Neon Avatar) ตาม Match ID + A, B
+        // 4. จัดการรูปภาพนีออนขนาดใหญ่ด้านบน (Neon Avatars Top Stage)
+        var isDoubles = (d.match_mode === 'doubles' || (d.player_a2 && d.player_a2.trim() !== '') || (d.player_b2 && d.player_b2.trim() !== ''));
         var mId = (d.match_id || "").toString().trim();
 
-        // --- รูปภาพทีม A ---
+        // --- ข้อมูลรูปทีม A ---
         var photoA = d.photo_a || "";
         var photoA1 = d.photo_a1 || "";
         var photoA2 = d.photo_a2 || "";
 
-        // Fallback ไปโฟลเดอร์เครื่อง Badminton_Images/
+        // Fallbacks โฟลเดอร์เครื่อง Badminton_Images/
         if (!photoA && !photoA1 && mId) {
           photoA = 'Badminton_Images/' + encodeURIComponent(mId) + '_A.jpg';
+        }
+        if (!photoA1 && isDoubles && mId) {
+          photoA1 = 'Badminton_Images/' + encodeURIComponent(mId) + '_A1.jpg';
+        }
+        if (!photoA2 && isDoubles && mId) {
+          photoA2 = 'Badminton_Images/' + encodeURIComponent(mId) + '_A2.jpg';
         }
 
         var circleA1 = document.getElementById('circleA1');
@@ -691,19 +733,21 @@
         var imgA1 = document.getElementById('imgA1');
         var imgA2 = document.getElementById('imgA2');
 
-        if (photoA1 && photoA2) {
-          imgA1.src = photoA1;
-          imgA2.src = photoA2;
+        if (isDoubles) {
+          circleA1.className = 'avatar-circle blue-glow doubles-size';
+          circleA2.className = 'avatar-circle blue-glow doubles-size';
           circleA2.style.display = 'flex';
-        } else if (photoA) {
-          imgA1.src = photoA;
-          circleA2.style.display = 'none';
+
+          imgA1.src = photoA1 || photoA || DEFAULT_AVATAR_A;
+          imgA2.src = photoA2 || DEFAULT_AVATAR_A;
         } else {
-          imgA1.src = DEFAULT_AVATAR_A;
+          circleA1.className = 'avatar-circle blue-glow singles-size';
           circleA2.style.display = 'none';
+
+          imgA1.src = photoA1 || photoA || DEFAULT_AVATAR_A;
         }
 
-        // --- รูปภาพทีม B ---
+        // --- ข้อมูลรูปทีม B ---
         var photoB = d.photo_b || "";
         var photoB1 = d.photo_b1 || "";
         var photoB2 = d.photo_b2 || "";
@@ -711,22 +755,30 @@
         if (!photoB && !photoB1 && mId) {
           photoB = 'Badminton_Images/' + encodeURIComponent(mId) + '_B.jpg';
         }
+        if (!photoB1 && isDoubles && mId) {
+          photoB1 = 'Badminton_Images/' + encodeURIComponent(mId) + '_B1.jpg';
+        }
+        if (!photoB2 && isDoubles && mId) {
+          photoB2 = 'Badminton_Images/' + encodeURIComponent(mId) + '_B2.jpg';
+        }
 
         var circleB1 = document.getElementById('circleB1');
         var circleB2 = document.getElementById('circleB2');
         var imgB1 = document.getElementById('imgB1');
         var imgB2 = document.getElementById('imgB2');
 
-        if (photoB1 && photoB2) {
-          imgB1.src = photoB1;
-          imgB2.src = photoB2;
+        if (isDoubles) {
+          circleB1.className = 'avatar-circle red-glow doubles-size';
+          circleB2.className = 'avatar-circle red-glow doubles-size';
           circleB2.style.display = 'flex';
-        } else if (photoB) {
-          imgB1.src = photoB;
-          circleB2.style.display = 'none';
+
+          imgB1.src = photoB1 || photoB || DEFAULT_AVATAR_B;
+          imgB2.src = photoB2 || DEFAULT_AVATAR_B;
         } else {
-          imgB1.src = DEFAULT_AVATAR_B;
+          circleB1.className = 'avatar-circle red-glow singles-size';
           circleB2.style.display = 'none';
+
+          imgB1.src = photoB1 || photoB || DEFAULT_AVATAR_B;
         }
       }
 
