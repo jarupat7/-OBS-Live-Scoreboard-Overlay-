@@ -813,7 +813,7 @@
             <div class="scorephone-link-desc">หน้านี้ถูกตั้งเป็นโหมดมอนิเตอร์ (ปิดปุ่มกดแต้ม) เพื่อป้องกันการกดซ้ำซ้อน • ให้ผู้ตัดสินในสนามกดคะแนนผ่านมือถือ</div>
           </div>
         </div>
-        <a href="scorephone.html" target="_blank" class="btn-open-scorephone">
+        <a href="scorephone.html" target="_blank" class="btn-open-scorephone" id="btnLaunchScorephone">
           <span>📲</span> เปิดหน้าจอกดคะแนนมือถือ (Scorephone)
         </a>
       </div>
@@ -1067,8 +1067,20 @@
     const DEFAULT_DRIVE_FOLDER = "https://drive.google.com/drive/folders/1G2TfyeJhJy0eGiBSWmlMhehG4L2J_Bug?usp=drive_link";
 
     var urlParams = new URLSearchParams(window.location.search);
-    var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
+    var currentScriptUrl = (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl : '';
+    var apiUrl = currentScriptUrl || DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
     var liveData = null;
+
+    try {
+      var btnPhone = document.getElementById('btnLaunchScorephone');
+      if (btnPhone) {
+        if (apiUrl.includes('script.google.com') || window.location.href.includes('script.google.com')) {
+          btnPhone.href = (apiUrl.split('?')[0]) + '?page=scorephone';
+        } else {
+          btnPhone.href = 'scorephone.html';
+        }
+      }
+    } catch(e) {}
 
     // Real-time BroadcastChannel สำหรับ OBS & Courtside & Scorephone บนเครื่องเดียวกัน (0ms latency)
     var liveChannel = null;

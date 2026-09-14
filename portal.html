@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badminton Tournament Hub - ศูนย์รวมระบบคะแนนถ่ายทอดสด</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800&family=Kanit:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --bg-dark: #090d16;
+      --card-bg: #0f172a;
+      --card-border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(239, 68, 68, 0.08) 0%, transparent 40%);
+      color: var(--text);
+      font-family: 'Kanit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* Header */
+    .header-box {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* Live Preview Strip */
+    .live-match-banner {
+      background: linear-gradient(135deg, #111e33 0%, #0d1527 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .live-match-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .live-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #ef4444;
+      text-transform: uppercase;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 10px #ef4444;
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .match-name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .match-court {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .live-score-pill {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 4px 18px;
+      border-radius: 10px;
+      color: #ffffff;
+      letter-spacing: 2px;
+    }
+
+    /* Cards Grid */
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .portal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+    }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .card-icon {
+      font-size: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-open {
+      flex: 1;
+      background: linear-gradient(90deg, #0284c7, #2563eb);
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: filter 0.15s;
+    }
+
+    .btn-open:hover {
+      filter: brightness(1.15);
+    }
+
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .btn-copy:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+
+    .btn-copy:active {
+      transform: scale(0.95);
+    }
+
+    /* Footer Info */
+    .footer-info {
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 16px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0284c7;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 1000;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header class="header-box">
+      <div class="brand-badge">
+        <span>🏸</span>
+        <span>BADMINTON TOURNAMENT HUB</span>
+      </div>
+      <h1>ระบบคะแนนและถ่ายทอดสดแบดมินตัน</h1>
+      <p class="subtitle">ศูนย์กลางควบคุมแมตช์ กดคะแนนบนมือถือ และกราฟิก Overlay สำหรับ OBS Studio</p>
+    </header>
+
+    <!-- Live Match Banner -->
+    <div class="live-match-banner">
+      <div class="live-match-info">
+        <div class="live-tag">
+          <div class="live-dot"></div>
+          <span>แมตช์สดปัจจุบัน</span>
+        </div>
+        <div class="match-name" id="hubMatchName">กำลังเชื่อมต่อข้อมูลแมตช์...</div>
+        <div class="match-court" id="hubCourtInfo">-</div>
+      </div>
+      <div class="live-score-pill" id="hubLiveScore">0 - 0</div>
+    </div>
+
+    <!-- Portal Cards Grid -->
+    <main class="portal-grid">
+
+      <!-- 1. Scorephone -->
+      <div class="portal-card">
+        <div>
+          <div class="card-top">
+            <div class="card-icon">📱</div>
+            <div>
+              <div class="card-title">กดคะแนนบนมือถือ (Scorephone)</div>
+              <div class="card-desc">สำหรับผู้ตัดสินในสนามกดคะแนนผ่านสมาร์ทโฟน ปุ่มแต้มใหญ่ 0ms พร้อมภาพนักกีฬา</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a class="btn-open" id="linkPhone" href="?page=scorephone" target="_blank"><span>📲</span> เปิดใช้งาน</a>
+          <button class="btn-copy" onclick="copyPageUrl('scorephone')">📋 คัดลอก</button>
+        </div>
+      </div>
+
+      <!-- 2. Referee Controller -->
+      <div class="portal-card">
+        <div>
+          <div class="card-top">
+            <div class="card-icon">📡</div>
+            <div>
+              <div class="card-title">คุมแมตช์ / คิวแข่ง (Referee)</div>
+              <div class="card-desc">สำหรับกรรมการกลางมอนิเตอร์คะแนนสด โหลดตารางแข่ง แก้ไขชื่อนักกีฬา และตั้งกติกา</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a class="btn-open" id="linkReferee" href="?page=referee" target="_blank"><span>🖥️</span> เปิดใช้งาน</a>
+          <button class="btn-copy" onclick="copyPageUrl('referee')">📋 คัดลอก</button>
+        </div>
+      </div>
+
+      <!-- 3. VS Barname Overlay -->
+      <div class="portal-card">
+        <div>
+          <div class="card-top">
+            <div class="card-icon">🏸</div>
+            <div>
+              <div class="card-title">แถบชื่อนักกีฬา OBS (Barname)</div>
+              <div class="card-desc">แถบเปิดตัวคู่แข่งขันพร้อมภาพนักกีฬาเรืองแสงนีออน 200px (ใส่ใน OBS Browser Source)</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a class="btn-open" id="linkBarname" href="?page=barname" target="_blank"><span>📺</span> เปิดดูตัวอย่าง</a>
+          <button class="btn-copy" onclick="copyPageUrl('barname')">📋 ก็อปใส่ OBS</button>
+        </div>
+      </div>
+
+      <!-- 4. OBS Scoreboard Overlay -->
+      <div class="portal-card">
+        <div>
+          <div class="card-top">
+            <div class="card-icon">📺</div>
+            <div>
+              <div class="card-title">สกอร์บอร์ดมุมจอ OBS (Overlay)</div>
+              <div class="card-desc">สกอร์บอร์ดคะแนนสด 3 เซต แนวนอนโปร่งแสงสำหรับวางมุมจอสตรีม OBS Studio</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a class="btn-open" id="linkOverlay" href="?page=overlay" target="_blank"><span>📺</span> เปิดดูตัวอย่าง</a>
+          <button class="btn-copy" onclick="copyPageUrl('overlay')">📋 ก็อปใส่ OBS</button>
+        </div>
+      </div>
+
+      <!-- 5. Courtside Display -->
+      <div class="portal-card">
+        <div>
+          <div class="card-top">
+            <div class="card-icon">🏟️</div>
+            <div>
+              <div class="card-title">จอแสดงผลข้างสนาม (Courtside)</div>
+              <div class="card-desc">สกอร์บอร์ดขนาดใหญ่เต็มจอ (Full Screen) สำหรับต่อสาย HDMI ขึ้นจอข้างสนามแข่ง</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a class="btn-open" id="linkCourt" href="?page=courtside" target="_blank"><span>🖥️</span> เปิดใช้งาน</a>
+          <button class="btn-copy" onclick="copyPageUrl('courtside')">📋 คัดลอก</button>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="footer-info">
+      ระบบจัดการคะแนนและถ่ายทอดสดแบดมินตัน • ขับเคลื่อนด้วย Google Sheets & Google Apps Script
+    </footer>
+
+  </div>
+
+  <div class="toast" id="hubToast">คัดลอกลิงก์สำเร็จ</div>
+
+  <script>
+    // Get Base Web App URL (Prioritize injected webAppUrl from Google Apps Script)
+    const INJECTED_URL = (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl : '';
+    const BASE_URL = INJECTED_URL || window.location.href.split('?')[0];
+
+    // Update Links dynamically
+    document.getElementById('linkPhone').href = BASE_URL + '?page=scorephone';
+    document.getElementById('linkReferee').href = BASE_URL + '?page=referee';
+    document.getElementById('linkBarname').href = BASE_URL + '?page=barname';
+    document.getElementById('linkOverlay').href = BASE_URL + '?page=overlay';
+    document.getElementById('linkCourt').href = BASE_URL + '?page=courtside';
+
+    function copyPageUrl(pageName) {
+      const fullUrl = BASE_URL + '?page=' + pageName;
+      navigator.clipboard.writeText(fullUrl).then(() => {
+        showToast('📋 คัดลอกลิงก์ ?page=' + pageName + ' แล้ว');
+      }).catch(() => {
+        prompt('คัดลอกลิงก์นี้:', fullUrl);
+      });
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('hubToast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    // Live Match Polling
+    function fetchLiveSummary() {
+      fetch(BASE_URL + '?action=getLive&t=' + Date.now())
+        .then(res => res.json())
+        .then(json => {
+          if (json.success && json.data) {
+            const d = json.data;
+            const teamA = d.team_a_name || 'TEAM A';
+            const teamB = d.team_b_name || 'TEAM B';
+            document.getElementById('hubMatchName').textContent = teamA + ' VS ' + teamB;
+
+            const courtStr = (d.court || 'COURT 1') + ' • Match ' + (d.match_id || '-');
+            const typeStr = d.match_type ? (' • ' + d.match_type) : '';
+            document.getElementById('hubCourtInfo').textContent = courtStr + typeStr;
+
+            document.getElementById('hubLiveScore').textContent = (d.score_a || 0) + ' - ' + (d.score_b || 0);
+          }
+        })
+        .catch(() => {});
+    }
+
+    fetchLiveSummary();
+    setInterval(fetchLiveSummary, 2500);
+  </script>
+</body>
+
+</html>

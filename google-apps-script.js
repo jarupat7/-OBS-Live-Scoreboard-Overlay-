@@ -313,7 +313,75 @@ function testDrivePhotos() {
 // -------------------------------------------------------------
 
 function doGet(e) {
-  return handleRequest(e);
+  var params = e ? e.parameter : {};
+  // ถ้าส่ง action มา แสดงว่าเป็น API Request (JSON)
+  if (params && params.action) {
+    return handleRequest(e);
+  }
+
+  // ถ้าส่ง page มา ให้เปิดหน้าเว็บตามที่ระบุ
+  var page = (params.page || "").toLowerCase().trim();
+  if (page === "scorephone" || page === "phone" || page === "mobile") {
+    return renderPage("scorephone", "Badminton Scorephone - ระบบกดคะแนนมือถือ");
+  } else if (page === "referee" || page === "admin" || page === "control") {
+    return renderPage("referee", "Badminton Referee Controller - คุมแมตช์สด");
+  } else if (page === "barname" || page === "banner" || page === "vs") {
+    return renderPage("barname", "Badminton VS Match Bar - แถบชื่อนักกีฬา OBS");
+  } else if (page === "overlay" || page === "index" || page === "obs") {
+    return renderPage("index", "Badminton Live Broadcast Overlay - สกอร์บอร์ด OBS");
+  } else if (page === "courtside" || page === "court") {
+    return renderPage("courtside", "Badminton Courtside Display - จอข้างสนาม");
+  } else if (page === "portal" || page === "hub") {
+    return renderPage("portal", "Badminton Tournament Hub - ศูนย์รวมระบบคะแนน", "referee");
+  }
+
+  // หน้าเริ่มต้น: ถ้าไม่ระบุ page ให้เปิดหน้า Portal (หรือ fallback เป็น referee)
+  return renderPage("portal", "Badminton Tournament Hub - ศูนย์รวมระบบคะแนน", "referee");
+}
+
+function renderPage(fileName, title, fallbackFile) {
+  try {
+    var template = HtmlService.createTemplateFromFile(fileName);
+    template.webAppUrl = ScriptApp.getService().getUrl();
+    return template.evaluate()
+      .setTitle(title)
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  } catch(err) {
+    if (fallbackFile) {
+      try {
+        var t2 = HtmlService.createTemplateFromFile(fallbackFile);
+        t2.webAppUrl = ScriptApp.getService().getUrl();
+        return t2.evaluate()
+          .setTitle(title)
+          .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+          .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+      } catch(err2) {}
+    }
+    return HtmlService.createHtmlOutput(
+      "<div style='font-family:sans-serif;padding:30px;background:#090d16;color:#f8fafc;min-height:100vh;'>" +
+      "<h2 style='color:#38bdf8;'>🏸 ระบบคะแนนถ่ายทอดสดแบดมินตัน</h2>" +
+      "<p style='color:#f87171;font-size:16px;'>⚠️ กำลังเปิดหน้า: <b>" + fileName + "</b> แต่ยังไม่พบไฟล์นี้ใน Apps Script Editor</p>" +
+      "<div style='background:#1e293b;padding:16px;border-radius:10px;margin:20px 0;line-height:1.6;'>" +
+      "<p><b>📌 วิธีเพิ่มไฟล์หน้าเว็บลงใน Google Apps Script:</b></p>" +
+      "<ol style='margin-left:20px;margin-top:8px;'>" +
+      "<li>ในหน้า Apps Script ดูที่แถบซ้ายข้างคำว่า <b>ไฟล์</b> ให้กดปุ่มเครื่องหมายบวก <b>+</b></li>" +
+      "<li>เลือก <b>HTML</b></li>" +
+      "<li>ตั้งชื่อไฟล์เป็น: <code style='background:#0f172a;color:#38bdf8;padding:2px 6px;border-radius:4px;'>" + fileName + "</code> (ไม่ต้องพิมพ์ .html)</li>" +
+      "<li>คัดลอกโค้ดจากไฟล์ " + fileName + ".html มาวางทับ แล้วกดบันทึก 💾</li>" +
+      "</ol></div>" +
+      "<h4 style='margin-top:20px;'>🔗 ลิงก์หน้าระบบทั้งหมด:</h4>" +
+      "<ul style='line-height:2;margin-left:20px;'>" +
+      "<li><a style='color:#38bdf8;' href='?page=scorephone'>📱 หน้าจอกดคะแนนบนมือถือ (scorephone)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='?page=referee'>📡 หน้าจอคุมแมตช์ของกรรมการ (referee)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='?page=barname'>🏸 แถบชื่อนักกีฬา OBS 200px (barname)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='?page=overlay'>📺 สกอร์บอร์ดมุมจอ OBS (overlay)</a></li>" +
+      "<li><a style='color:#38bdf8;' href='?page=courtside'>🏟️ จอแสดงคะแนนข้างสนาม (courtside)</a></li>" +
+      "</ul></div>"
+    )
+    .setTitle(title)
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
 }
 
 function doPost(e) {

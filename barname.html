@@ -618,8 +618,9 @@
     };
 
     (function () {
+      var currentScriptUrl = (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl : '';
       var urlParams = new URLSearchParams(window.location.search);
-      var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
+      var apiUrl = currentScriptUrl || DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
       var driveFolder = localStorage.getItem('badminton_drive_folder') || DEFAULT_DRIVE_FOLDER;
 
       // คีย์ลัด Alt + S สำหรับเปลี่ยน URL

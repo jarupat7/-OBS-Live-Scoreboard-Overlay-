@@ -683,9 +683,10 @@
     const DEFAULT_AVATAR_A = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2308192e'/%3E%3Ccircle cx='50' cy='38' r='20' fill='%2338bdf8'/%3E%3Cpath d='M20,86 C20,68 34,58 50,58 C66,58 80,68 80,86 Z' fill='%230284c7'/%3E%3C/svg%3E";
     const DEFAULT_AVATAR_B = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23280811'/%3E%3Ccircle cx='50' cy='38' r='20' fill='%23f87171'/%3E%3Cpath d='M20,86 C20,68 34,58 50,58 C66,58 80,68 80,86 Z' fill='%23dc2626'/%3E%3C/svg%3E";
 
-    // Query parameters
+    // Query parameters & auto-detected API URL
+    const currentScriptUrl = (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl : '';
     const urlParams = new URLSearchParams(window.location.search);
-    const apiUrl = urlParams.get('api') || localStorage.getItem('badminton_api_url') || DEFAULT_API_URL;
+    const apiUrl = currentScriptUrl || urlParams.get('api') || localStorage.getItem('badminton_api_url') || DEFAULT_API_URL;
 
     // State
     let liveData = null;

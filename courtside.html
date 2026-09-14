@@ -472,8 +472,9 @@
     const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec"; // ใส่ URL เช่น "https://script.google.com/macros/s/AKfycb.../exec"
 
     (function () {
+      var currentScriptUrl = (typeof webAppUrl !== 'undefined' && webAppUrl) ? webAppUrl : '';
       var urlParams = new URLSearchParams(window.location.search);
-      var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
+      var apiUrl = currentScriptUrl || DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
 
       // เปิดกล่องตั้งค่าด้วย Alt + S หรือเคาะ Double Click บน Header
       window.addEventListener('keydown', function (e) {
