@@ -26,6 +26,9 @@ function onOpen() {
     .addItem('⚡ ติดตั้ง / รีเซ็ตโครงสร้างชีต (Setup Sheets)', 'setupSheets')
     .addItem('🔄 รีเซ็ตแมตช์ปัจจุบันเป็น 0-0', 'resetCurrentMatchFromMenu')
     .addItem('📋 ใส่ข้อมูลตัวอย่างตารางแข่ง (Add Sample Matches)', 'addSampleData')
+    .addSeparator()
+    .addItem('📁 ตั้งค่าโฟลเดอร์รูป Drive (Match ID + A,B)', 'promptSetDriveFolder')
+    .addItem('🔄 ซิงค์รูปภาพ Drive ทันที (Refresh Photos)', 'refreshDrivePhotosFromMenu')
     .addToUi();
 }
 
@@ -166,6 +169,95 @@ function addSampleData() {
 }
 
 // -------------------------------------------------------------
+// Google Drive Match Photos Helper (จับคู่รูปภาพด้วย Match ID + A, B)
+// -------------------------------------------------------------
+var DEFAULT_DRIVE_FOLDER_ID = ""; // ใส่ Folder ID หรือ ลิงก์โฟลเดอร์ Google Drive ได้ที่นี่
+
+function extractDriveFolderId(input) {
+  if (!input) return "";
+  input = input.toString().trim();
+  var m = input.match(/folders\/([a-zA-Z0-9_-]{20,})/);
+  if (m) return m[1];
+  var m2 = input.match(/id=([a-zA-Z0-9_-]{20,})/);
+  if (m2) return m2[1];
+  if (input.indexOf('/') === -1 && input.length >= 20) return input;
+  return input;
+}
+
+function getDriveFolderPhotosMap(folderId) {
+  folderId = extractDriveFolderId(folderId);
+  if (!folderId) return {};
+
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get("drive_photos_map_" + folderId);
+  if (cached) {
+    try { return JSON.parse(cached); } catch(e) {}
+  }
+
+  var map = {};
+  try {
+    var folder = DriveApp.getFolderById(folderId);
+    var files = folder.getFiles();
+    while (files.hasNext()) {
+      var file = files.next();
+      var name = file.getName();
+      // ตัดนามสกุลไฟล์ออก เช่น 194_A.png -> 194_A
+      var baseName = name.replace(/\.[^/.]+$/, "").toUpperCase().trim();
+      var url = "https://lh3.googleusercontent.com/d/" + file.getId();
+      map[baseName] = url;
+      // แบบ normalized ไม่มีสัญลักษณ์ เช่น 194A
+      var normalized = baseName.replace(/[^A-Z0-9]/g, "");
+      map[normalized] = url;
+    }
+    // แคชไว้ 30 นาที (1800 วินาที)
+    try {
+      cache.put("drive_photos_map_" + folderId, JSON.stringify(map), 1800);
+    } catch(ce) {}
+  } catch(err) {
+    Logger.log("Error getDriveFolderPhotosMap: " + err);
+  }
+  return map;
+}
+
+function promptSetDriveFolder() {
+  var ui = SpreadsheetApp.getUi();
+  var curFolder = PropertiesService.getScriptProperties().getProperty("drive_folder_id") || DEFAULT_DRIVE_FOLDER_ID || "";
+  var resp = ui.prompt(
+    "📁 ตั้งค่าโฟลเดอร์รูปภาพนักกีฬา Google Drive",
+    "กรุณาใส่ลิงก์โฟลเดอร์ Google Drive หรือ Folder ID ที่เก็บรูปภาพ (เช่น https://drive.google.com/drive/folders/...):\n(โฟลเดอร์ปัจจุบัน: " + (curFolder || "ยังไม่ได้ตั้งค่า") + ")",
+    ui.ButtonSet.OK_CANCEL
+  );
+
+  if (resp.getSelectedButton() === ui.Button.OK) {
+    var rawInput = resp.getResponseText();
+    var folderId = extractDriveFolderId(rawInput);
+    if (folderId) {
+      PropertiesService.getScriptProperties().setProperty("drive_folder_id", folderId);
+      CacheService.getScriptCache().remove("drive_photos_map_" + folderId);
+      CacheService.getScriptCache().remove("live_match_data");
+      var map = getDriveFolderPhotosMap(folderId);
+      var total = Object.keys(map).length;
+      ui.alert("✅ บันทึกโฟลเดอร์รูปภาพเรียบร้อยแล้ว!\nFolder ID: " + folderId + "\nพบไฟล์รูปภาพในโฟลเดอร์: " + total + " รูป");
+    } else {
+      ui.alert("⚠️ ไม่พบ ID โฟลเดอร์ที่ถูกต้อง กรุณาตรวจสอบลิงก์อีกครั้งครับ");
+    }
+  }
+}
+
+function refreshDrivePhotosFromMenu() {
+  var folderId = PropertiesService.getScriptProperties().getProperty("drive_folder_id") || DEFAULT_DRIVE_FOLDER_ID || "";
+  if (!folderId) {
+    SpreadsheetApp.getUi().alert("⚠️ ยังไม่ได้ตั้งค่าโฟลเดอร์ Google Drive กรุณากดเมนู 'ตั้งค่าโฟลเดอร์รูป Drive' ก่อนครับ");
+    return;
+  }
+  CacheService.getScriptCache().remove("drive_photos_map_" + folderId);
+  CacheService.getScriptCache().remove("live_match_data");
+  var map = getDriveFolderPhotosMap(folderId);
+  var total = Object.keys(map).length;
+  SpreadsheetApp.getUi().alert("✅ ซิงค์รูปภาพจาก Google Drive สำเร็จ!\nพบไฟล์รูปภาพทั้งหมด: " + total + " รูป");
+}
+
+// -------------------------------------------------------------
 // Request Handlers: รับคำขอ GET / POST จากภายนอก
 // -------------------------------------------------------------
 
@@ -189,26 +281,85 @@ function handleRequest(e) {
     } catch (err) {}
   }
 
-  // 1. FAST CACHE PATH FOR getLive: ส่งผลลัพธ์จาก Cache ทันทีในเสี้ยววินาที ไม่ต้องรอ LockService
+  // 1. READ ACTIONS: ไม่ต้องใช้ LockService เพื่อป้องกันคิวติดขัดและตอบสนองได้เร็วที่สุด
   if (action === "getLive") {
     try {
       var cache = CacheService.getScriptCache();
       var cachedStr = cache.get("live_match_data");
       if (cachedStr) {
-        var cachedData = JSON.parse(cachedStr);
         return ContentService.createTextOutput(JSON.stringify({
           success: true,
-          data: cachedData
+          data: JSON.parse(cachedStr)
         })).setMimeType(ContentService.MimeType.JSON);
       }
     } catch(err) {}
+
+    // ถ้า Cache Miss ให้อ่านจากชีตตรงๆ ไม่ต้องล็อค
+    try {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var liveSheet = ss.getSheetByName("LiveMatch");
+      if (!liveSheet) {
+        setupSheets();
+        liveSheet = ss.getSheetByName("LiveMatch");
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        data: getLiveMatchData(liveSheet)
+      })).setMimeType(ContentService.MimeType.JSON);
+    } catch(err) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: err.toString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
   }
 
-  // 2. สำหรับคำสั่งอื่นๆ หรือกรณี Cache Miss ให้ใช้ LockService เพื่อป้องกัน Race Condition ในการเขียน
+  if (action === "getSchedule") {
+    try {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var schedSheet = ss.getSheetByName("Schedule");
+      if (!schedSheet) {
+        setupSheets();
+        schedSheet = ss.getSheetByName("Schedule");
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        data: getScheduleData(schedSheet)
+      })).setMimeType(ContentService.MimeType.JSON);
+    } catch(err) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: err.toString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  if (action === "getHistory") {
+    try {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var histSheet = ss.getSheetByName("MatchHistory");
+      if (!histSheet) {
+        setupSheets();
+        histSheet = ss.getSheetByName("MatchHistory");
+      }
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        data: getHistoryData(histSheet)
+      })).setMimeType(ContentService.MimeType.JSON);
+    } catch(err) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: err.toString()
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+  }
+
+  // 2. WRITE/MUTATION ACTIONS: ใช้ LockService เพื่อป้องกัน Race Condition ในการเขียนชีต
   var lock = LockService.getScriptLock();
-  lock.tryLock(10000);
-  
+  var hasLock = false;
   try {
+    hasLock = lock.tryLock(5000);
+
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var liveSheet = ss.getSheetByName("LiveMatch");
     var schedSheet = ss.getSheetByName("Schedule");
@@ -223,10 +374,7 @@ function handleRequest(e) {
 
     var result = { success: true };
 
-    if (action === "getLive") {
-      result.data = getLiveMatchData(liveSheet);
-    } 
-    else if (action === "updateLive") {
+    if (action === "updateLive") {
       var dataToUpdate = postData ? postData.data : params;
       updateLiveMatchData(liveSheet, dataToUpdate);
       result.data = getLiveMatchData(liveSheet);
@@ -253,9 +401,6 @@ function handleRequest(e) {
     else if (action === "resetMatch") {
       result.data = processResetMatch(liveSheet);
     }
-    else if (action === "getSchedule") {
-      result.data = getScheduleData(schedSheet);
-    }
     else if (action === "saveScheduleMatch") {
       var matchData = postData ? postData.data : params;
       saveScheduleMatchData(schedSheet, matchData);
@@ -278,8 +423,27 @@ function handleRequest(e) {
     else if (action === "saveResult") {
       result.data = processSaveResult(liveSheet, schedSheet, histSheet);
     }
-    else if (action === "getHistory") {
-      result.data = getHistoryData(histSheet);
+    else if (action === "setDriveFolder") {
+      var fId = extractDriveFolderId(params.folder_id || (postData ? postData.folder_id : ""));
+      if (fId) {
+        PropertiesService.getScriptProperties().setProperty("drive_folder_id", fId);
+        CacheService.getScriptCache().remove("drive_photos_map_" + fId);
+        CacheService.getScriptCache().remove("live_match_data");
+        var newMap = getDriveFolderPhotosMap(fId);
+        result.folder_id = fId;
+        result.total_photos = Object.keys(newMap).length;
+      } else {
+        result.success = false;
+        result.error = "Invalid folder ID";
+      }
+    }
+    else if (action === "refreshDrivePhotos") {
+      var fId = PropertiesService.getScriptProperties().getProperty("drive_folder_id") || DEFAULT_DRIVE_FOLDER_ID || "";
+      CacheService.getScriptCache().remove("drive_photos_map_" + fId);
+      CacheService.getScriptCache().remove("live_match_data");
+      var newMap = getDriveFolderPhotosMap(fId);
+      result.folder_id = fId;
+      result.total_photos = Object.keys(newMap).length;
     }
     else {
       result.success = false;
@@ -295,7 +459,11 @@ function handleRequest(e) {
       error: error.toString()
     })).setMimeType(ContentService.MimeType.JSON);
   } finally {
-    lock.releaseLock();
+    if (hasLock) {
+      try {
+        lock.releaseLock();
+      } catch(e) {}
+    }
   }
 }
 
@@ -340,6 +508,20 @@ function getLiveMatchData(sheet) {
     updated_at: data[25],
     server_time: Date.now()
   };
+
+  // ดึงรูปภาพนักกีฬาจาก Google Drive ตาม Match ID + A, B
+  var folderId = PropertiesService.getScriptProperties().getProperty("drive_folder_id") || DEFAULT_DRIVE_FOLDER_ID || "";
+  var photosMap = getDriveFolderPhotosMap(folderId);
+  var mId = (liveData.match_id || "").toString().trim().toUpperCase();
+  var mIdClean = mId.replace(/[^A-Z0-9]/g, "");
+
+  liveData.photo_a = photosMap[mId + "_A"] || photosMap[mIdClean + "A"] || "";
+  liveData.photo_b = photosMap[mId + "_B"] || photosMap[mIdClean + "B"] || "";
+  liveData.photo_a1 = photosMap[mId + "_A1"] || photosMap[mIdClean + "A1"] || "";
+  liveData.photo_a2 = photosMap[mId + "_A2"] || photosMap[mIdClean + "A2"] || "";
+  liveData.photo_b1 = photosMap[mId + "_B1"] || photosMap[mIdClean + "B1"] || "";
+  liveData.photo_b2 = photosMap[mId + "_B2"] || photosMap[mIdClean + "B2"] || "";
+  liveData.drive_folder_id = folderId;
 
   try {
     CacheService.getScriptCache().put("live_match_data", JSON.stringify(liveData), 21600);

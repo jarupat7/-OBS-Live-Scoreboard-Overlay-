@@ -601,8 +601,20 @@
 
         var fetchUrl = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=getLive&t=' + Date.now();
 
-        fetch(fetchUrl)
-          .then(function (res) { return res.json(); })
+        var controller = null;
+        var timeoutId = null;
+        try {
+          if (typeof AbortController !== 'undefined') {
+            controller = new AbortController();
+            timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+          }
+        } catch(e) {}
+
+        fetch(fetchUrl, controller ? { signal: controller.signal } : {})
+          .then(function (res) {
+            if (timeoutId) clearTimeout(timeoutId);
+            return res.json();
+          })
           .then(function (json) {
             isFetching = false;
             if (json.success && json.data) {
@@ -611,6 +623,7 @@
           })
           .catch(function (err) {
             isFetching = false;
+            if (timeoutId) clearTimeout(timeoutId);
           });
       }
 
@@ -625,7 +638,7 @@
       } catch(e) {}
 
       fetchData();
-      setInterval(fetchData, 1000);
+      setInterval(fetchData, 2500);
     })();
   </script>
 

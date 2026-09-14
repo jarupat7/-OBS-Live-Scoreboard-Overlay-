@@ -553,6 +553,8 @@
         }
       }
 
+      var consecutiveErrors = 0;
+
       function fetchData() {
         if (!apiUrl) {
           document.getElementById('syncText').textContent = 'กรุณาใส่ API URL (กด Alt+S)';
@@ -565,22 +567,43 @@
 
         var fetchUrl = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=getLive&t=' + Date.now();
 
-        fetch(fetchUrl)
-          .then(function (res) { return res.json(); })
+        var controller = null;
+        var timeoutId = null;
+        try {
+          if (typeof AbortController !== 'undefined') {
+            controller = new AbortController();
+            timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+          }
+        } catch(e) {}
+
+        fetch(fetchUrl, controller ? { signal: controller.signal } : {})
+          .then(function (res) {
+            if (timeoutId) clearTimeout(timeoutId);
+            return res.json();
+          })
           .then(function (json) {
             isFetching = false;
             if (json.success && json.data) {
+              consecutiveErrors = 0;
               renderData(json.data);
               document.getElementById('syncText').textContent = 'Live Connected';
               document.getElementById('syncDot').className = 'dot';
             } else {
-              document.getElementById('syncDot').className = 'dot error';
+              consecutiveErrors++;
+              if (consecutiveErrors >= 3) {
+                document.getElementById('syncDot').className = 'dot error';
+                document.getElementById('syncText').textContent = 'Sync Error';
+              }
             }
           })
           .catch(function (err) {
             isFetching = false;
-            document.getElementById('syncDot').className = 'dot error';
-            document.getElementById('syncText').textContent = 'Sync Error';
+            if (timeoutId) clearTimeout(timeoutId);
+            consecutiveErrors++;
+            if (consecutiveErrors >= 3) {
+              document.getElementById('syncDot').className = 'dot error';
+              document.getElementById('syncText').textContent = 'Sync Error';
+            }
           });
       }
 
@@ -589,6 +612,7 @@
         var liveChannel = new BroadcastChannel('badminton_live_sync');
         liveChannel.onmessage = function (ev) {
           if (ev.data && ev.data.type === 'LIVE_UPDATE' && ev.data.data) {
+            consecutiveErrors = 0;
             renderData(ev.data.data);
             document.getElementById('syncText').textContent = 'Live Connected';
             document.getElementById('syncDot').className = 'dot';
@@ -597,7 +621,7 @@
       } catch(e) {}
 
       fetchData();
-      setInterval(fetchData, 1000);
+      setInterval(fetchData, 2500);
     })();
   </script>
 

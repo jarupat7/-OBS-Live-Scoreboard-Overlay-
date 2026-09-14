@@ -877,6 +877,17 @@
 
         <button class="btn-save-settings" onclick="saveTournamentInfo()">อัปเดตชื่อรายการ & โลโก้</button>
       </div>
+
+      <div class="setting-group">
+        <div class="setting-title">📁 โฟลเดอร์รูปภาพ Google Drive (Match ID + A,B)</div>
+        <label class="form-label">ลิงก์หรือ ID โฟลเดอร์ Google Drive ที่เก็บรูปภาพ:</label>
+        <input type="text" class="form-input" id="settingDriveFolder" placeholder="https://drive.google.com/drive/folders/...">
+        <p style="font-size:11px; color:#94a3b8; margin-top:-6px; margin-bottom:10px; line-height: 1.4;">
+          * ตั้งชื่อรูปใน Drive เป็น <b>เลขแมตช์+A,B</b> เช่น <code>194_A.png</code>, <code>194_B.png</code> (ประเภทคู่: <code>194_A1.png</code>, <code>194_A2.png</code>)<br>
+          * อย่าลืมเปิดแชร์โฟลเดอร์ใน Drive เป็น <b>"ทุกคนที่มีลิงก์มีสิทธิ์ดู"</b>
+        </p>
+        <button class="btn-save-settings" style="background:#0284c7;" onclick="saveDriveFolderSetting()">💾 บันทึก & ซิงค์รูปภาพ Drive</button>
+      </div>
     </div>
 
   </div>
@@ -1056,11 +1067,15 @@
         if (liveData) {
           document.getElementById('settingTourName').value = liveData.tournament_name || '';
           document.getElementById('settingTourLogo').value = liveData.tournament_logo || '';
+          document.getElementById('settingDriveFolder').value = liveData.drive_folder_id || localStorage.getItem('badminton_drive_folder') || '';
+        } else {
+          document.getElementById('settingDriveFolder').value = localStorage.getItem('badminton_drive_folder') || '';
         }
       }
     }
 
-    // API Call Wrapper
+    // API Call Wrapper พร้อมระบบ Tolerance ป้องกันไฟสถานะกระพริบ และ Timeout
+    var consecutiveErrors = 0;
     function apiCall(action, params) {
       if (!apiUrl) {
         alert('กรุณาตั้งค่า Google Apps Script API URL ในแท็บ "ตั้งค่า" ก่อนใช้งานครับ');
@@ -1075,10 +1090,23 @@
         }
       }
 
-      return fetch(url)
-        .then(function (res) { return res.json(); })
+      var controller = null;
+      var timeoutId = null;
+      try {
+        if (typeof AbortController !== 'undefined') {
+          controller = new AbortController();
+          timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+        }
+      } catch(e) {}
+
+      return fetch(url, controller ? { signal: controller.signal } : {})
+        .then(function (res) {
+          if (timeoutId) clearTimeout(timeoutId);
+          return res.json();
+        })
         .then(function (json) {
           if (json.success) {
+            consecutiveErrors = 0;
             document.getElementById('headerDot').className = 'sync-dot';
             document.getElementById('headerSyncText').textContent = 'Online';
             return json.data;
@@ -1087,8 +1115,13 @@
           }
         })
         .catch(function (err) {
-          document.getElementById('headerDot').className = 'sync-dot offline';
-          document.getElementById('headerSyncText').textContent = 'Offline';
+          if (timeoutId) clearTimeout(timeoutId);
+          consecutiveErrors++;
+          // แสดง Offline เมื่อล้มเหลวติดต่อกัน 3 ครั้งขึ้นไปเท่านั้น
+          if (consecutiveErrors >= 3) {
+            document.getElementById('headerDot').className = 'sync-dot offline';
+            document.getElementById('headerSyncText').textContent = 'Offline';
+          }
           throw err;
         });
     }
@@ -1097,6 +1130,7 @@
     function renderLive(d) {
       if (!d) return;
       liveData = d;
+      broadcastLive(d);
       var pts = Number(d.points_mode) === 15 ? 15 : 21;
 
       document.getElementById('headerTourTitle').textContent = d.tournament_name || 'REFEREE CONTROLLER';
@@ -1574,6 +1608,23 @@
         .catch(function (err) { alert('เกิดข้อผิดพลาด: ' + err); });
     }
 
+    function saveDriveFolderSetting() {
+      var val = document.getElementById('settingDriveFolder').value.trim();
+      if (!val) {
+        alert('กรุณาใส่ลิงก์หรือ ID โฟลเดอร์ Google Drive ครับ');
+        return;
+      }
+      localStorage.setItem('badminton_drive_folder', val);
+      apiCall('setDriveFolder', { folder_id: val })
+        .then(function(res) {
+          alert('✅ บันทึกโฟลเดอร์ Google Drive เรียบร้อยแล้ว!\nFolder ID: ' + res.folder_id + '\nพบไฟล์รูปภาพในโฟลเดอร์: ' + (res.total_photos || 0) + ' รูป');
+          fetchLive();
+        })
+        .catch(function(err) {
+          alert('เกิดข้อผิดพลาดในการเชื่อมต่อ Drive: ' + err);
+        });
+    }
+
     // Background Live Polling พร้อมระบบป้องกัน Stale Data ทับคะแนนใหม่
     var isPollingLive = false;
     function fetchLive() {
@@ -1585,10 +1636,10 @@
           isPollingLive = false;
           if (!d) return;
 
-          // ถ้าเพิ่งมีการกดคะแนนหรือควบคุมล่าสุดภายใน 1.5 วินาที
+          // ถ้าเพิ่งมีการกดคะแนนหรือควบคุมล่าสุดภายใน 2.5 วินาที
           // และข้อมูลจากเซิร์ฟเวอร์ยังเก่ากว่าเวลาที่กด ให้ข้ามการเรนเดอร์เพื่อป้องกันคะแนนเด้งกลับ
           var elapsedSinceAction = Date.now() - lastMutationTime;
-          if (elapsedSinceAction < 1500) {
+          if (elapsedSinceAction < 2500) {
             if (d.server_time && d.server_time < lastMutationTime) {
               return;
             }
@@ -1602,7 +1653,7 @@
     }
 
     fetchLive();
-    setInterval(fetchLive, 1000);
+    setInterval(fetchLive, 2500);
   </script>
 
 </body>

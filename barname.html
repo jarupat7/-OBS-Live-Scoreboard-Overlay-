@@ -33,8 +33,8 @@
     ------------------------------------------- */
     .vs-broadcast-banner {
       position: relative;
-      width: 1020px;
-      max-width: 95vw;
+      width: 1120px;
+      max-width: 96vw;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -138,13 +138,14 @@
     ------------------------------------------- */
     .team-slot {
       position: relative;
-      padding: 14px 26px;
+      padding: 12px 20px;
       border-radius: 14px;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
       overflow: hidden;
-      min-height: 115px;
+      min-height: 120px;
     }
 
     /* SIDE A: BLUE NEON */
@@ -154,8 +155,8 @@
       box-shadow: 
         inset 0 0 28px rgba(2, 132, 199, 0.35),
         0 0 18px rgba(2, 132, 199, 0.25);
-      text-align: right;
-      padding-right: 28px;
+      padding-left: 18px;
+      padding-right: 18px;
     }
 
     .team-slot.side-a::before {
@@ -176,8 +177,8 @@
       box-shadow: 
         inset 0 0 28px rgba(220, 38, 38, 0.35),
         0 0 18px rgba(220, 38, 38, 0.25);
-      text-align: left;
-      padding-left: 28px;
+      padding-left: 18px;
+      padding-right: 18px;
     }
 
     .team-slot.side-b::after {
@@ -191,12 +192,84 @@
       box-shadow: 0 0 14px #f87171;
     }
 
+    /* -------------------------------------------
+       AVATAR CONTAINERS & NEON CIRCLES
+    ------------------------------------------- */
+    .avatar-box {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 5;
+    }
+
+    .avatar-circle {
+      width: 78px;
+      height: 78px;
+      min-width: 78px;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #090e17;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .avatar-circle.blue-glow {
+      border: 3px solid #38bdf8;
+      box-shadow: 
+        0 0 16px rgba(56, 189, 248, 0.85),
+        inset 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+
+    .avatar-circle.red-glow {
+      border: 3px solid #ef4444;
+      box-shadow: 
+        0 0 16px rgba(239, 68, 68, 0.85),
+        inset 0 0 10px rgba(239, 68, 68, 0.4);
+    }
+
+    .avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    /* Overlapping avatar for doubles */
+    .avatar-overlap {
+      margin-left: -26px;
+      position: relative;
+      z-index: 2;
+      box-shadow: -4px 0 14px rgba(0, 0, 0, 0.9);
+    }
+
+    /* Text details layout */
+    .team-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .side-a-info {
+      text-align: right;
+    }
+
+    .side-b-info {
+      text-align: left;
+    }
+
     /* Team & Player Typography */
     .team-name {
       font-family: 'Chakra Petch', 'Kanit', sans-serif;
-      font-size: 34px;
+      font-size: 29px;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       line-height: 1.15;
       text-transform: uppercase;
       white-space: nowrap;
@@ -216,9 +289,9 @@
     }
 
     .player-names {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 700;
-      margin-top: 5px;
+      margin-top: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -415,8 +488,18 @@
       <div class="teams-grid">
         <!-- SIDE A (BLUE) -->
         <div class="team-slot side-a">
-          <div class="team-name" id="nameTeamA">TEAM A</div>
-          <div class="player-names" id="namesPlayerA">นักกีฬา A1 / นักกีฬา A2</div>
+          <div class="avatar-box side-a-avatar" id="avatarBoxA">
+            <div class="avatar-circle blue-glow" id="circleA1">
+              <img id="imgA1" src="" alt="A1" onerror="handleAvatarError(this, 'A')">
+            </div>
+            <div class="avatar-circle blue-glow avatar-overlap" id="circleA2" style="display: none;">
+              <img id="imgA2" src="" alt="A2" onerror="handleAvatarError(this, 'A')">
+            </div>
+          </div>
+          <div class="team-info side-a-info">
+            <div class="team-name" id="nameTeamA">TEAM A</div>
+            <div class="player-names" id="namesPlayerA">นักกีฬา A1 / นักกีฬา A2</div>
+          </div>
         </div>
 
         <!-- CENTER VS -->
@@ -429,8 +512,18 @@
 
         <!-- SIDE B (RED) -->
         <div class="team-slot side-b">
-          <div class="team-name" id="nameTeamB">TEAM B</div>
-          <div class="player-names" id="namesPlayerB">นักกีฬา B1 / นักกีฬา B2</div>
+          <div class="team-info side-b-info">
+            <div class="team-name" id="nameTeamB">TEAM B</div>
+            <div class="player-names" id="namesPlayerB">นักกีฬา B1 / นักกีฬา B2</div>
+          </div>
+          <div class="avatar-box side-b-avatar" id="avatarBoxB">
+            <div class="avatar-circle red-glow" id="circleB1">
+              <img id="imgB1" src="" alt="B1" onerror="handleAvatarError(this, 'B')">
+            </div>
+            <div class="avatar-circle red-glow avatar-overlap" id="circleB2" style="display: none;">
+              <img id="imgB2" src="" alt="B2" onerror="handleAvatarError(this, 'B')">
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -446,12 +539,20 @@
 
   <!-- CONFIG MODAL (Alt+S หรือคลิก 3 ครั้ง) -->
   <div id="configModal">
-    <h3>⚙️ ตั้งค่า Web App API URL</h3>
-    <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">ใส่ URL Google Apps Script Web App เพื่อเชื่อมโยงข้อมูลแบบเรียลไทม์:</p>
+    <h3>⚙️ ตั้งค่าระบบ Match Bar</h3>
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-bottom:4px;">Google Apps Script Web App API URL:</label>
     <input type="text" id="apiInput" placeholder="https://script.google.com/macros/s/.../exec">
+
+    <label style="font-size:12px; color:#94a3b8; display:block; margin-bottom:4px;">📁 ลิงก์โฟลเดอร์ Google Drive รูปภาพนักกีฬา (Match ID + A,B):</label>
+    <input type="text" id="driveFolderInput" placeholder="https://drive.google.com/drive/folders/...">
+    <p style="font-size:11px; color:#64748b; margin-top:-8px; margin-bottom:12px; line-height: 1.4;">
+      * ตั้งชื่อรูปใน Drive เป็น <b>เลขแมตช์+A,B</b> เช่น <code>194_A.png</code>, <code>194_B.png</code> (ประเภทคู่: <code>194_A1.png</code>, <code>194_A2.png</code>)<br>
+      * โฟลเดอร์ใน Drive ต้องตั้งเป็น <b>"ทุกคนที่มีลิงก์มีสิทธิ์ดู"</b>
+    </p>
+
     <div style="text-align: right;">
       <button class="btn-close" onclick="closeConfig()">ปิด</button>
-      <button class="btn-save" onclick="saveApiUrl()">บันทึก</button>
+      <button class="btn-save" onclick="saveAllConfig()">บันทึก & ซิงค์ข้อมูล</button>
     </div>
   </div>
 
@@ -461,15 +562,25 @@
     // =========================================================================
     const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec";
 
+    // รูปเงามาตรฐานเมื่อไม่มีรูปภาพ
+    const DEFAULT_AVATAR_A = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="bgA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="%230e3a61"/><stop offset="100%" stop-color="%23041221"/></radialGradient></defs><circle cx="50" cy="50" r="50" fill="url(%23bgA)"/><path d="M50 22a13 13 0 1 0 0 26 13 13 0 0 0 0-26zm0 32c-16.5 0-30 9.5-30 22v10h60V76c0-12.5-13.5-22-30-22z" fill="%2338bdf8" opacity="0.85"/><circle cx="72" cy="28" r="6" fill="%23facc15"/><line x1="68" y1="32" x2="60" y2="40" stroke="%23facc15" stroke-width="2.5" stroke-linecap="round"/></svg>';
+
+    const DEFAULT_AVATAR_B = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="bgB" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="%2361131c"/><stop offset="100%" stop-color="%23240306"/></radialGradient></defs><circle cx="50" cy="50" r="50" fill="url(%23bgB)"/><path d="M50 22a13 13 0 1 0 0 26 13 13 0 0 0 0-26zm0 32c-16.5 0-30 9.5-30 22v10h60V76c0-12.5-13.5-22-30-22z" fill="%23ef4444" opacity="0.85"/><circle cx="28" cy="28" r="6" fill="%23facc15"/><line x1="32" y1="32" x2="40" y2="40" stroke="%23facc15" stroke-width="2.5" stroke-linecap="round"/></svg>';
+
+    window.handleAvatarError = function (img, side) {
+      img.onerror = null;
+      img.src = (side === 'A') ? DEFAULT_AVATAR_A : DEFAULT_AVATAR_B;
+    };
+
     (function () {
       var urlParams = new URLSearchParams(window.location.search);
       var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
+      var driveFolder = localStorage.getItem('badminton_drive_folder') || '';
 
       // คีย์ลัด Alt + S สำหรับเปลี่ยน URL
       window.addEventListener('keydown', function (e) {
         if (e.altKey && (e.key === 's' || e.key === 'S')) {
-          document.getElementById('configModal').style.display = 'block';
-          document.getElementById('apiInput').value = apiUrl;
+          openConfig();
         }
       });
 
@@ -478,20 +589,36 @@
       document.getElementById('bannerContainer').addEventListener('click', function () {
         clickCount++;
         if (clickCount >= 3) {
-          document.getElementById('configModal').style.display = 'block';
-          document.getElementById('apiInput').value = apiUrl;
+          openConfig();
           clickCount = 0;
         }
       });
 
-      window.saveApiUrl = function () {
-        var val = document.getElementById('apiInput').value.trim();
-        if (val) {
-          localStorage.setItem('badminton_api_url', val);
-          apiUrl = val;
-          document.getElementById('configModal').style.display = 'none';
-          fetchData();
+      function openConfig() {
+        document.getElementById('configModal').style.display = 'block';
+        document.getElementById('apiInput').value = apiUrl;
+        document.getElementById('driveFolderInput').value = driveFolder;
+      }
+
+      window.saveAllConfig = function () {
+        var apiVal = document.getElementById('apiInput').value.trim();
+        var folderVal = document.getElementById('driveFolderInput').value.trim();
+
+        if (apiVal) {
+          localStorage.setItem('badminton_api_url', apiVal);
+          apiUrl = apiVal;
         }
+        if (folderVal) {
+          localStorage.setItem('badminton_drive_folder', folderVal);
+          driveFolder = folderVal;
+
+          // ส่งคำสั่งไปตั้งค่าและซิงค์รูปใน Apps Script ทันที
+          fetch(apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=setDriveFolder&folder_id=' + encodeURIComponent(folderVal))
+            .catch(function () {});
+        }
+
+        document.getElementById('configModal').style.display = 'none';
+        fetchData();
       };
 
       window.closeConfig = function () {
@@ -501,6 +628,14 @@
       var isFetching = false;
 
       function renderData(d) {
+        if (!d) return;
+
+        // อัปเดต Drive folder id ถ้ามีส่งมาจาก backend
+        if (d.drive_folder_id && !driveFolder) {
+          driveFolder = d.drive_folder_id;
+          localStorage.setItem('badminton_drive_folder', driveFolder);
+        }
+
         // 1. Header & Tournament Title
         var tourName = d.tournament_name || 'BADMINTON CHAMPIONSHIP';
         document.getElementById('topTournamentText').textContent = 'LIVE STREAM : ' + tourName;
@@ -527,6 +662,62 @@
 
         var ptsMode = Number(d.points_mode) === 15 ? 15 : 21;
         document.getElementById('pointsModeBadge').textContent = ptsMode + ' แต้ม (BEST OF 3)';
+
+        // 4. แสดงรูปภาพนีออน (Neon Avatar) ตาม Match ID + A, B
+        var mId = (d.match_id || "").toString().trim();
+
+        // --- รูปภาพทีม A ---
+        var photoA = d.photo_a || "";
+        var photoA1 = d.photo_a1 || "";
+        var photoA2 = d.photo_a2 || "";
+
+        // Fallback ไปโฟลเดอร์เครื่อง players/
+        if (!photoA && !photoA1 && mId) {
+          photoA = 'players/' + encodeURIComponent(mId) + '_A.png';
+        }
+
+        var circleA1 = document.getElementById('circleA1');
+        var circleA2 = document.getElementById('circleA2');
+        var imgA1 = document.getElementById('imgA1');
+        var imgA2 = document.getElementById('imgA2');
+
+        if (photoA1 && photoA2) {
+          imgA1.src = photoA1;
+          imgA2.src = photoA2;
+          circleA2.style.display = 'flex';
+        } else if (photoA) {
+          imgA1.src = photoA;
+          circleA2.style.display = 'none';
+        } else {
+          imgA1.src = DEFAULT_AVATAR_A;
+          circleA2.style.display = 'none';
+        }
+
+        // --- รูปภาพทีม B ---
+        var photoB = d.photo_b || "";
+        var photoB1 = d.photo_b1 || "";
+        var photoB2 = d.photo_b2 || "";
+
+        if (!photoB && !photoB1 && mId) {
+          photoB = 'players/' + encodeURIComponent(mId) + '_B.png';
+        }
+
+        var circleB1 = document.getElementById('circleB1');
+        var circleB2 = document.getElementById('circleB2');
+        var imgB1 = document.getElementById('imgB1');
+        var imgB2 = document.getElementById('imgB2');
+
+        if (photoB1 && photoB2) {
+          imgB1.src = photoB1;
+          imgB2.src = photoB2;
+          circleB2.style.display = 'flex';
+        } else if (photoB) {
+          imgB1.src = photoB;
+          circleB2.style.display = 'none';
+        } else {
+          imgB1.src = DEFAULT_AVATAR_B;
+          circleB2.style.display = 'none';
+        }
       }
 
       function fetchData() {
@@ -535,8 +726,20 @@
 
         var fetchUrl = apiUrl + (apiUrl.indexOf('?') >= 0 ? '&' : '?') + 'action=getLive&t=' + new Date().getTime();
 
-        fetch(fetchUrl)
-          .then(function (res) { return res.json(); })
+        var controller = null;
+        var timeoutId = null;
+        try {
+          if (typeof AbortController !== 'undefined') {
+            controller = new AbortController();
+            timeoutId = setTimeout(function () { controller.abort(); }, 8000);
+          }
+        } catch(e) {}
+
+        fetch(fetchUrl, controller ? { signal: controller.signal } : {})
+          .then(function (res) {
+            if (timeoutId) clearTimeout(timeoutId);
+            return res.json();
+          })
           .then(function (res) {
             isFetching = false;
             if (res.success && res.data) {
@@ -545,15 +748,26 @@
           })
           .catch(function (err) {
             isFetching = false;
+            if (timeoutId) clearTimeout(timeoutId);
             console.error('Data fetch error:', err);
           });
       }
 
+      // Real-time BroadcastChannel listener (0ms latency from referee controller on same device)
+      try {
+        var liveChannel = new BroadcastChannel('badminton_live_sync');
+        liveChannel.onmessage = function (ev) {
+          if (ev.data && ev.data.type === 'LIVE_UPDATE' && ev.data.data) {
+            renderData(ev.data.data);
+          }
+        };
+      } catch(e) {}
+
       // ดึงข้อมูลครั้งแรกทันที
       fetchData();
 
-      // ดึงข้อมูลอัปเดตแบบเรียลไทม์ทุกๆ 1.5 วินาที
-      setInterval(fetchData, 1500);
+      // ดึงข้อมูลอัปเดตแบบเรียลไทม์ทุกๆ 2.5 วินาที
+      setInterval(fetchData, 2500);
     })();
   </script>
 </body>
