@@ -812,8 +812,19 @@
     /* -------------------------------------------
        RENDER SCOREPHONE UI
     ------------------------------------------- */
+    let lastRenderedServerTime = 0;
     function renderPhoneUI(d) {
       if (!d) return;
+
+      const ts = Number(d.server_time) || (d.updated_at ? new Date(d.updated_at).getTime() : 0);
+      // ป้องกันข้อมูลแพ็กเก็ตเก่าที่เพิ่งตอบกลับมาทับคะแนนใหม่ที่เราเพิ่งกดไป
+      if (ts && ts < lastRenderedServerTime && (Date.now() - lastMutationTime < 4000)) {
+        return;
+      }
+      if (ts && ts >= lastRenderedServerTime) {
+        lastRenderedServerTime = ts;
+      }
+
       liveData = d;
 
       // 1. Header Information
@@ -962,6 +973,8 @@
 
       localMutationVersion++;
       lastMutationTime = Date.now();
+      lastRenderedServerTime = Date.now();
+      liveData.server_time = Date.now();
 
       if (side === 'L') {
         liveData.score_a++;
@@ -976,7 +989,7 @@
       const curVer = localMutationVersion;
       apiCall('addPoint', { side: side })
         .then(d => {
-          if (localMutationVersion === curVer) renderPhoneUI(d);
+          if (localMutationVersion === curVer && d) renderPhoneUI(d);
         })
         .catch(() => {});
     }
@@ -988,10 +1001,12 @@
 
       localMutationVersion++;
       lastMutationTime = Date.now();
+      lastRenderedServerTime = Date.now();
 
       if (localHistory.length > 0) {
         const prev = localHistory.pop();
         liveData = prev;
+        liveData.server_time = Date.now();
         renderPhoneUI(liveData);
         showToast('↩️ ย้อนคะแนนสำเร็จ');
       }
@@ -999,7 +1014,7 @@
       const curVer = localMutationVersion;
       apiCall('undoPoint')
         .then(d => {
-          if (localMutationVersion === curVer) renderPhoneUI(d);
+          if (localMutationVersion === curVer && d) renderPhoneUI(d);
         })
         .catch(() => {});
     }
@@ -1011,6 +1026,8 @@
 
       localMutationVersion++;
       lastMutationTime = Date.now();
+      lastRenderedServerTime = Date.now();
+      liveData.server_time = Date.now();
 
       liveData.serving_side = side;
       renderPhoneUI(liveData);
@@ -1019,7 +1036,7 @@
       const curVer = localMutationVersion;
       apiCall('setServe', { side: side })
         .then(d => {
-          if (localMutationVersion === curVer) renderPhoneUI(d);
+          if (localMutationVersion === curVer && d) renderPhoneUI(d);
         })
         .catch(() => {});
     }
@@ -1033,6 +1050,8 @@
 
       localMutationVersion++;
       lastMutationTime = Date.now();
+      lastRenderedServerTime = Date.now();
+      liveData.server_time = Date.now();
 
       // Swap locally 0ms
       const tmpTeam = liveData.team_a_name;
@@ -1072,7 +1091,7 @@
       const curVer = localMutationVersion;
       apiCall('switchSide')
         .then(d => {
-          if (localMutationVersion === curVer) renderPhoneUI(d);
+          if (localMutationVersion === curVer && d) renderPhoneUI(d);
         })
         .catch(() => {});
     }
@@ -1081,12 +1100,12 @@
        INITIALIZATION & POLLING
     ------------------------------------------- */
     function fetchLive() {
-      // Skip polling if a local touch action happened recently
-      if (Date.now() - lastMutationTime < 1400) return;
+      // ไม่ดึงข้อมูลทับถ้าผู้ใช้เพิ่งกดแต้มในรอบ 3.5 วินาที
+      if (Date.now() - lastMutationTime < 3500) return;
 
       apiCall('getLive')
         .then(d => {
-          if (Date.now() - lastMutationTime >= 1400) {
+          if (Date.now() - lastMutationTime >= 3500 && d) {
             renderPhoneUI(d);
           }
         })
@@ -1095,8 +1114,8 @@
 
     // Initial load
     fetchLive();
-    // Fast mobile polling (1.5 seconds)
-    setInterval(fetchLive, 1500);
+    // Fast mobile polling (2 seconds)
+    setInterval(fetchLive, 2000);
 
   </script>
 </body>

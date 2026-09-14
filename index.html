@@ -468,8 +468,16 @@
       };
 
       var isFetching = false;
+      var lastRenderedServerTime = 0;
 
       function renderData(d) {
+        if (!d) return;
+        var ts = Number(d.server_time) || (d.updated_at ? new Date(d.updated_at).getTime() : 0);
+        if (ts && ts < lastRenderedServerTime) {
+          return; // ไม่แสดงข้อมูลเก่ากว่าที่แสดงอยู่แล้ว ป้องกันแต้มกระโดดสลับไปมา
+        }
+        if (ts) lastRenderedServerTime = ts;
+
         // 1. Header
         document.getElementById('tourTitle').textContent = d.tournament_name || 'BADMINTON CHAMPIONSHIP';
 

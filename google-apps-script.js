@@ -332,20 +332,8 @@ function handleRequest(e) {
     } catch (err) {}
   }
 
-  // 1. READ ACTIONS: ไม่ต้องใช้ LockService เพื่อป้องกันคิวติดขัดและตอบสนองได้เร็วที่สุด
+  // 1. READ ACTIONS: อ่านจากชีตสดๆ โดยตรง เพื่อป้องกันการคืนค่าคะแนนเก่าจากแคช
   if (action === "getLive") {
-    try {
-      var cache = CacheService.getScriptCache();
-      var cachedStr = cache.get("live_match_data");
-      if (cachedStr) {
-        return ContentService.createTextOutput(JSON.stringify({
-          success: true,
-          data: JSON.parse(cachedStr)
-        })).setMimeType(ContentService.MimeType.JSON);
-      }
-    } catch(err) {}
-
-    // ถ้า Cache Miss ให้อ่านจากชีตตรงๆ ไม่ต้องล็อค
     try {
       var ss = SpreadsheetApp.getActiveSpreadsheet();
       var liveSheet = ss.getSheetByName("LiveMatch");
@@ -608,10 +596,9 @@ function getLiveMatchData(sheet) {
   liveData.photo_b2 = photosMap[mId + "_B2"] || photosMap[mIdClean + "B2"] || "";
   liveData.drive_folder_id = folderId;
 
+  // ลบแคช live_match_data เผื่อมีค้างอยู่ เพื่อให้อ่านคะแนนสดตรงจากชีตเสมอ
   try {
-    var hasPhotos = !!(liveData.photo_a || liveData.photo_b || liveData.photo_a1);
-    // ถ้าพบรูปภาพ แคชไว้ 30 นาที แต่ถ้ายังไม่พบรูป แคชแค่ 10 วินาที เพื่อให้รูปใหม่ขึ้นทันที
-    CacheService.getScriptCache().put("live_match_data", JSON.stringify(liveData), hasPhotos ? 1800 : 10);
+    CacheService.getScriptCache().remove("live_match_data");
   } catch(e) {}
 
   return liveData;
@@ -628,9 +615,9 @@ function updateLiveMatchData(sheet, d) {
   merged.server_time = Date.now();
   merged.updated_at = new Date();
 
-  // อัปเดต Cache ทันที เพื่อให้การอ่านครั้งถัดไปได้รับข้อมูลใหม่ทันที
+  // เคลียร์แคชเก่าทิ้งทันที
   try {
-    CacheService.getScriptCache().put("live_match_data", JSON.stringify(merged), 21600);
+    CacheService.getScriptCache().remove("live_match_data");
   } catch(e) {}
 
   var rowData = [
@@ -642,6 +629,7 @@ function updateLiveMatchData(sheet, d) {
     merged.updated_at
   ];
   sheet.getRange(2, 1, 1, 26).setValues([rowData]);
+  SpreadsheetApp.flush(); // บังคับเขียนลงสเปรดชีตทันที ป้องกันอ่านค่าเก่า
 }
 
 function checkSetWon(a, b, pointsMode) {
