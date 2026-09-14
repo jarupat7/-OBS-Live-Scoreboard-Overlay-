@@ -218,7 +218,7 @@
       box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
     }
 
-    /* แผงคะแนนกรรมการ (2 ฝั่ง) */
+    /* แผงคะแนนกรรมการ (โหมดมอนิเตอร์คะแนนสด) */
     .referee-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -228,121 +228,168 @@
 
     .ref-team-box {
       border-radius: 16px;
-      padding: 14px;
+      padding: 16px 14px;
       display: flex;
       flex-direction: column;
       position: relative;
       border: 2px solid transparent;
-      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
 
     .ref-team-a {
-      background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
-      border-color: #3b82f6;
+      background: linear-gradient(180deg, #102a5c 0%, #0a1120 100%);
+      border-color: #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
     }
 
     .ref-team-b {
-      background: linear-gradient(180deg, #881337 0%, #0f172a 100%);
+      background: linear-gradient(180deg, #5c0f1e 0%, #1a080c 100%);
       border-color: #ef4444;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
     }
 
     .ref-team-header {
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .ref-team-name {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 800;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      color: #ffffff;
     }
 
     .ref-player-name {
-      font-size: 11px;
+      font-size: 12px;
       color: #cbd5e1;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-top: 2px;
     }
 
-    /* ปุ่มกดแต้มยักษ์ (+1 Point Button) */
-    .btn-big-point {
-      flex: 1;
-      background: rgba(0, 0, 0, 0.35);
-      border: 2px solid rgba(255, 255, 255, 0.15);
+    /* กล่องแสดงคะแนนสด (Read-only Monitor Display) */
+    .monitor-score-box {
+      background: rgba(0, 0, 0, 0.45);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
       border-radius: 14px;
       color: #ffffff;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px 8px;
-      cursor: pointer;
-      transition: transform 0.1s, background 0.15s;
+      padding: 16px 8px;
       user-select: none;
-    }
-
-    .btn-big-point:active {
-      transform: scale(0.96);
-      background: rgba(255, 255, 255, 0.1);
     }
 
     .big-score-num {
       font-family: 'Teko', sans-serif;
-      font-size: 72px;
-      font-weight: 700;
-      line-height: 1;
+      font-size: 80px;
+      font-weight: 800;
+      line-height: 0.9;
     }
 
-    .big-score-label {
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-top: 4px;
-      color: #facc15;
+    .side-a-score {
+      color: #ffffff;
+      text-shadow: 0 0 22px rgba(56, 189, 248, 0.85);
     }
 
-    /* ปุ่มเสิร์ฟ และ ปุ่ม Undo */
-    .ref-team-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
+    .side-b-score {
+      color: #ffffff;
+      text-shadow: 0 0 22px rgba(239, 68, 68, 0.85);
     }
 
-    .btn-serve-toggle {
-      flex: 1;
-      padding: 8px 4px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(0, 0, 0, 0.3);
-      color: #94a3b8;
+    .monitor-score-label {
       font-size: 11px;
       font-weight: 700;
-      cursor: pointer;
+      letter-spacing: 1.5px;
+      margin-top: 6px;
+      color: #94a3b8;
+      text-transform: uppercase;
     }
 
-    .btn-serve-toggle.active {
-      background: #facc15;
-      color: #000000;
-      border-color: #eab308;
-      font-weight: 800;
-    }
-
-    .btn-undo-mini {
-      width: 38px;
+    /* ป้ายแสดงสถานะเสิร์ฟ */
+    .monitor-serve-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 6px 10px;
       border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(0, 0, 0, 0.3);
-      color: #fca5a5;
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
     }
 
-    .btn-undo-mini:active {
-      transform: scale(0.92);
+    .monitor-serve-indicator.active {
+      background: #eab308;
+      color: #000000;
+      border-color: #fde047;
+      font-weight: 800;
+      box-shadow: 0 0 14px rgba(234, 179, 8, 0.6);
+    }
+
+    /* แบนเนอร์ลิงก์ไปยัง scorephone.html */
+    .scorephone-link-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(56, 189, 248, 0.4);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .scorephone-link-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .scorephone-link-icon {
+      font-size: 24px;
+    }
+
+    .scorephone-link-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .scorephone-link-desc {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    .btn-open-scorephone {
+      background: linear-gradient(90deg, #0284c7, #2563eb);
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+      transition: all 0.2s;
+    }
+
+    .btn-open-scorephone:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
     }
 
     /* เซตคะแนนปัจจุบัน & สถานะ */
@@ -722,7 +769,7 @@
 
   <!-- Tab Navigation -->
   <div class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('live')">⚡ คุมคะแนนสด</button>
+    <button class="tab-btn active" onclick="switchTab('live')">📡 มอนิเตอร์แมตช์สด</button>
     <button class="tab-btn" onclick="switchTab('schedule')">📅 ตารางแข่ง</button>
     <button class="tab-btn" onclick="switchTab('history')">📜 ประวัติผล</button>
     <button class="tab-btn" onclick="switchTab('settings')">⚙️ ตั้งค่า</button>
@@ -757,7 +804,21 @@
         <div class="banner-badge" id="liveBannerBadge">GAME POINT</div>
       </div>
 
-      <!-- แผงกดคะแนน 2 ฝั่ง -->
+      <!-- แบนเนอร์แจ้งเตือนและลิงก์เปิด scorephone.html -->
+      <div class="scorephone-link-card">
+        <div class="scorephone-link-header">
+          <div class="scorephone-link-icon">📱</div>
+          <div>
+            <div class="scorephone-link-title">หน้าจอกดคะแนนบนมือถือ (scorephone.html)</div>
+            <div class="scorephone-link-desc">หน้านี้ถูกตั้งเป็นโหมดมอนิเตอร์ (ปิดปุ่มกดแต้ม) เพื่อป้องกันการกดซ้ำซ้อน • ให้ผู้ตัดสินในสนามกดคะแนนผ่านมือถือ</div>
+          </div>
+        </div>
+        <a href="scorephone.html" target="_blank" class="btn-open-scorephone">
+          <span>📲</span> เปิดหน้าจอกดคะแนนมือถือ (Scorephone)
+        </a>
+      </div>
+
+      <!-- แผงมอนิเตอร์คะแนน 2 ฝั่ง (Read-only) -->
       <div class="referee-grid">
         <!-- ฝั่งทีม A -->
         <div class="ref-team-box ref-team-a">
@@ -766,14 +827,13 @@
             <div class="ref-player-name" id="livePlayerA">PLAYER A1</div>
           </div>
 
-          <div class="btn-big-point" onclick="addScore('L')">
-            <div class="big-score-num" id="liveScoreA">0</div>
-            <div class="big-score-label">+1 POINT</div>
+          <div class="monitor-score-box">
+            <div class="big-score-num side-a-score" id="liveScoreA">0</div>
+            <div class="monitor-score-label">คะแนนสด (LIVE SCORE)</div>
           </div>
 
-          <div class="ref-team-actions">
-            <button class="btn-serve-toggle" id="btnServeA" onclick="setServe('L')">🏸 เสิร์ฟ</button>
-            <button class="btn-undo-mini" onclick="undoScore()">−1</button>
+          <div class="monitor-serve-indicator" id="btnServeA">
+            <span>🏸</span> <span id="txtServeA">เสิร์ฟ</span>
           </div>
         </div>
 
@@ -784,14 +844,13 @@
             <div class="ref-player-name" id="livePlayerB">PLAYER B1</div>
           </div>
 
-          <div class="btn-big-point" onclick="addScore('R')">
-            <div class="big-score-num" id="liveScoreB">0</div>
-            <div class="big-score-label">+1 POINT</div>
+          <div class="monitor-score-box">
+            <div class="big-score-num side-b-score" id="liveScoreB">0</div>
+            <div class="monitor-score-label">คะแนนสด (LIVE SCORE)</div>
           </div>
 
-          <div class="ref-team-actions">
-            <button class="btn-serve-toggle" id="btnServeB" onclick="setServe('R')">🏸 เสิร์ฟ</button>
-            <button class="btn-undo-mini" onclick="undoScore()">−1</button>
+          <div class="monitor-serve-indicator" id="btnServeB">
+            <span>🏸</span> <span id="txtServeB">เสิร์ฟ</span>
           </div>
         </div>
       </div>
@@ -1011,10 +1070,15 @@
     var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
     var liveData = null;
 
-    // Real-time BroadcastChannel สำหรับ OBS & Courtside บนเครื่องเดียวกัน (0ms latency)
+    // Real-time BroadcastChannel สำหรับ OBS & Courtside & Scorephone บนเครื่องเดียวกัน (0ms latency)
     var liveChannel = null;
     try {
       liveChannel = new BroadcastChannel('badminton_live_sync');
+      liveChannel.onmessage = function(ev) {
+        if (ev.data && ev.data.type === 'LIVE_UPDATE' && ev.data.data) {
+          renderLive(ev.data.data);
+        }
+      };
     } catch(e) {}
 
     function broadcastLive(data) {
@@ -1164,18 +1228,28 @@
       document.getElementById('liveScoreA').textContent = d.score_a;
       document.getElementById('liveScoreB').textContent = d.score_b;
 
-      // Serve indicators
+      // Serve indicators (Monitor Display)
       var btnA = document.getElementById('btnServeA');
       var btnB = document.getElementById('btnServeB');
-      if (d.serving_side === 'L') {
-        btnA.className = 'btn-serve-toggle active';
-        btnB.className = 'btn-serve-toggle';
-      } else if (d.serving_side === 'R') {
-        btnB.className = 'btn-serve-toggle active';
-        btnA.className = 'btn-serve-toggle';
-      } else {
-        btnA.className = 'btn-serve-toggle';
-        btnB.className = 'btn-serve-toggle';
+      var txtA = document.getElementById('txtServeA');
+      var txtB = document.getElementById('txtServeB');
+      if (btnA && btnB) {
+        if (d.serving_side === 'L') {
+          btnA.className = 'monitor-serve-indicator active';
+          btnB.className = 'monitor-serve-indicator';
+          if (txtA) txtA.textContent = 'กำลังเสิร์ฟ';
+          if (txtB) txtB.textContent = 'รอรับ';
+        } else if (d.serving_side === 'R') {
+          btnB.className = 'monitor-serve-indicator active';
+          btnA.className = 'monitor-serve-indicator';
+          if (txtB) txtB.textContent = 'กำลังเสิร์ฟ';
+          if (txtA) txtA.textContent = 'รอรับ';
+        } else {
+          btnA.className = 'monitor-serve-indicator';
+          btnB.className = 'monitor-serve-indicator';
+          if (txtA) txtA.textContent = 'เสิร์ฟ';
+          if (txtB) txtB.textContent = 'เสิร์ฟ';
+        }
       }
 
       // Set Summary

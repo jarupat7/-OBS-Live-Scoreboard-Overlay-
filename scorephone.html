@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Badminton Scorephone - ระบบกดคะแนนมือถือ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700;800;900&family=Kanit:wght@300;400;500;600;700;800;900&family=Teko:wght@600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --blue-primary: #0284c7;
+      --blue-glow: #38bdf8;
+      --red-primary: #dc2626;
+      --red-glow: #ef4444;
+      --bg-dark: #060911;
+      --bg-card: #0e1526;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(239, 68, 68, 0.08) 0%, transparent 50%);
+      color: var(--text-main);
+      font-family: 'Kanit', sans-serif;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
+    }
+
+    /* -------------------------------------------
+       HEADER BAR (COMPACT & CLEAN)
+    ------------------------------------------- */
+    .phone-header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .match-tagline {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--blue-glow);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .match-meta-pill {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    .sync-dot.offline {
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+    }
+
+    /* -------------------------------------------
+       STATUS & SET INFO STRIP
+    ------------------------------------------- */
+    .status-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 6px 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .set-info-text {
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .set-pill {
+      background: #3b82f6;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .status-badge-live {
+      display: none;
+      background: #ef4444;
+      color: white;
+      font-weight: 900;
+      font-size: 11px;
+      letter-spacing: 1px;
+      padding: 2px 10px;
+      border-radius: 20px;
+      animation: pulseBadge 1.2s infinite;
+    }
+
+    .status-badge-live.active {
+      display: inline-block;
+    }
+
+    @keyframes pulseBadge {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.96); }
+    }
+
+    /* -------------------------------------------
+       TEAMS SCORING GRID (MAIN MOBILE VIEW)
+    ------------------------------------------- */
+    .scoring-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .team-card {
+      display: flex;
+      flex-direction: column;
+      border-radius: 18px;
+      padding: 12px 8px 10px 8px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      transition: transform 0.1s ease, filter 0.1s ease;
+    }
+
+    /* Team A: Blue */
+    .team-card.side-a {
+      background: linear-gradient(180deg, rgba(8, 28, 55, 0.95) 0%, rgba(3, 13, 28, 0.98) 100%);
+      border: 2px solid #0284c7;
+      box-shadow: 0 0 20px rgba(2, 132, 199, 0.35), inset 0 0 20px rgba(2, 132, 199, 0.2);
+    }
+
+    .team-card.side-a.is-serving {
+      border-color: #38bdf8;
+      box-shadow: 0 0 30px rgba(56, 189, 248, 0.65), inset 0 0 25px rgba(56, 189, 248, 0.3);
+    }
+
+    /* Team B: Red */
+    .team-card.side-b {
+      background: linear-gradient(180deg, rgba(55, 10, 20, 0.95) 0%, rgba(28, 4, 9, 0.98) 100%);
+      border: 2px solid #dc2626;
+      box-shadow: 0 0 20px rgba(220, 38, 38, 0.35), inset 0 0 20px rgba(220, 38, 38, 0.2);
+    }
+
+    .team-card.side-b.is-serving {
+      border-color: #f87171;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.65), inset 0 0 25px rgba(239, 68, 68, 0.3);
+    }
+
+    /* -------------------------------------------
+       AVATAR CONTAINERS (PHOTOS WITH NEON GLOW)
+    ------------------------------------------- */
+    .avatar-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      min-height: 84px;
+    }
+
+    .avatar-circle-phone {
+      border-radius: 50%;
+      overflow: hidden;
+      background: #020617;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.85);
+      position: relative;
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+
+    /* Doubles size on mobile: 68px */
+    .avatar-circle-phone.doubles {
+      width: 68px;
+      height: 68px;
+    }
+
+    /* Singles size on mobile: 86px */
+    .avatar-circle-phone.singles {
+      width: 86px;
+      height: 86px;
+    }
+
+    .side-a .avatar-circle-phone {
+      border: 3px solid #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.8), inset 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+
+    .side-b .avatar-circle-phone {
+      border: 3px solid #ef4444;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.8), inset 0 0 8px rgba(239, 68, 68, 0.3);
+    }
+
+    .avatar-circle-phone img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    /* -------------------------------------------
+       TEAM & PLAYER TYPOGRAPHY
+    ------------------------------------------- */
+    .team-meta-box {
+      text-align: center;
+      margin-bottom: 8px;
+      padding: 0 4px;
+    }
+
+    .phone-team-name {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1.15;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #ffffff;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+    }
+
+    .side-a .phone-team-name {
+      text-shadow: 0 0 14px rgba(56, 189, 248, 0.7);
+    }
+
+    .side-b .phone-team-name {
+      text-shadow: 0 0 14px rgba(239, 68, 68, 0.7);
+    }
+
+    .phone-player-names {
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-top: 2px;
+      line-height: 1.25;
+      min-height: 28px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* -------------------------------------------
+       BIG TOUCH SCORE BUTTON (+1 POINT)
+    ------------------------------------------- */
+    .score-touch-area {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.45);
+      border: 2px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      padding: 10px 4px;
+      position: relative;
+      transition: all 0.08s ease;
+      min-height: 150px;
+    }
+
+    .side-a .score-touch-area {
+      background: radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.22) 0%, rgba(2, 6, 23, 0.7) 100%);
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    .side-b .score-touch-area {
+      background: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.22) 0%, rgba(2, 6, 23, 0.7) 100%);
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .score-touch-area:active {
+      transform: scale(0.96);
+      filter: brightness(1.3);
+    }
+
+    .side-a .score-touch-area:active {
+      background: rgba(14, 165, 233, 0.4);
+      border-color: #38bdf8;
+    }
+
+    .side-b .score-touch-area:active {
+      background: rgba(239, 68, 68, 0.4);
+      border-color: #ef4444;
+    }
+
+    .score-number {
+      font-family: 'Teko', sans-serif;
+      font-size: 88px;
+      font-weight: 800;
+      line-height: 0.88;
+      color: #ffffff;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+      pointer-events: none;
+    }
+
+    .side-a .score-number {
+      text-shadow: 0 0 25px rgba(56, 189, 248, 0.75), 0 4px 12px rgba(0, 0, 0, 0.9);
+    }
+
+    .side-b .score-number {
+      text-shadow: 0 0 25px rgba(239, 68, 68, 0.75), 0 4px 12px rgba(0, 0, 0, 0.9);
+    }
+
+    .score-btn-hint {
+      font-family: 'Kanit', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #ffffff;
+      margin-top: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 4px 14px;
+      border-radius: 20px;
+      pointer-events: none;
+    }
+
+    /* -------------------------------------------
+       SERVE & UNDO BAR (PER TEAM)
+    ------------------------------------------- */
+    .team-sub-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    .btn-serve {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #94a3b8;
+      padding: 8px 4px;
+      border-radius: 10px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-serve:active {
+      transform: scale(0.95);
+    }
+
+    .btn-serve.active {
+      background: #eab308;
+      color: #000000;
+      font-weight: 800;
+      border-color: #fde047;
+      box-shadow: 0 0 16px rgba(234, 179, 8, 0.7);
+    }
+
+    .btn-undo-side {
+      width: 44px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #cbd5e1;
+      border-radius: 10px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-undo-side:active {
+      transform: scale(0.92);
+      background: rgba(239, 68, 68, 0.4);
+      color: #ffffff;
+    }
+
+    /* -------------------------------------------
+       BOTTOM GLOBAL CONTROLS
+    ------------------------------------------- */
+    .bottom-actions-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn-global {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f1f5f9;
+      padding: 12px 8px;
+      border-radius: 12px;
+      font-family: 'Kanit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.15s ease;
+    }
+
+    .btn-global:active {
+      transform: scale(0.96);
+    }
+
+    .btn-switch-court {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+    }
+
+    .btn-global-undo {
+      background: linear-gradient(180deg, #271b2d 0%, #150d1a 100%);
+      border-color: rgba(216, 180, 254, 0.3);
+      color: #e9d5ff;
+    }
+
+    /* -------------------------------------------
+       TOAST / FEEDBACK NOTIFICATION
+    ------------------------------------------- */
+    .toast-popup {
+      position: fixed;
+      bottom: 74px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #38bdf8;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+      white-space: nowrap;
+    }
+
+    .toast-popup.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Landscape Mode Tweaks */
+    @media (orientation: landscape) and (max-height: 520px) {
+      body {
+        padding: 4px 8px;
+      }
+      .phone-header {
+        padding: 4px 10px;
+        margin-bottom: 4px;
+      }
+      .status-strip {
+        padding: 3px 8px;
+        margin-bottom: 4px;
+      }
+      .avatar-wrapper {
+        min-height: 48px;
+        margin-bottom: 4px;
+      }
+      .avatar-circle-phone.doubles {
+        width: 44px;
+        height: 44px;
+      }
+      .avatar-circle-phone.singles {
+        width: 50px;
+        height: 50px;
+      }
+      .score-number {
+        font-size: 64px;
+      }
+      .score-touch-area {
+        min-height: 100px;
+        padding: 4px;
+      }
+      .bottom-actions-bar {
+        margin-top: 4px;
+      }
+      .btn-global {
+        padding: 8px 6px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- 1. Header Bar -->
+  <header class="phone-header">
+    <div class="header-left">
+      <div class="match-tagline">
+        <span>🏸</span>
+        <span id="txtCourtMatch">COURT 1 • MATCH 01</span>
+      </div>
+      <div class="match-meta-pill" id="txtMatchCategory">ประเภททั่วไป • 21 แต้ม</div>
+    </div>
+    <div class="header-right">
+      <div class="sync-status">
+        <div class="sync-dot" id="phoneSyncDot"></div>
+        <span id="phoneSyncText">ออนไลน์</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. Status & Set Strip -->
+  <div class="status-strip">
+    <div class="set-info-text">
+      <span class="set-pill" id="txtActiveSetPill">เซต 1</span>
+      <span id="txtSetSummaryScores">คะแนนเซต: 0-0</span>
+    </div>
+    <div class="status-badge-live" id="txtLiveStatusBadge">GAME POINT</div>
+  </div>
+
+  <!-- 3. Main Scoring Grid -->
+  <main class="scoring-grid">
+
+    <!-- Team A (Left / Blue) -->
+    <section class="team-card side-a" id="cardTeamA">
+      <!-- Player Avatars -->
+      <div class="avatar-wrapper" id="podA">
+        <div class="avatar-circle-phone doubles" id="circleA1">
+          <img id="imgA1" src="" alt="Player A1" onerror="handleImgError(this, 'A')">
+        </div>
+        <div class="avatar-circle-phone doubles" id="circleA2">
+          <img id="imgA2" src="" alt="Player A2" onerror="handleImgError(this, 'A')">
+        </div>
+      </div>
+
+      <!-- Team Names -->
+      <div class="team-meta-box">
+        <div class="phone-team-name" id="txtTeamA">TEAM A</div>
+        <div class="phone-player-names" id="txtPlayerA">PLAYER A1</div>
+      </div>
+
+      <!-- Touch Score Button (+1) -->
+      <div class="score-touch-area" id="btnTouchA" onclick="handleScoreClick('L')">
+        <div class="score-number" id="txtScoreA">0</div>
+        <div class="score-btn-hint">+1 POINT</div>
+      </div>
+
+      <!-- Sub Actions (Serve & Undo) -->
+      <div class="team-sub-actions">
+        <button class="btn-serve" id="btnServeA" onclick="handleServeClick('L')">
+          <span>🏸</span> <span id="lblServeA">เสิร์ฟ</span>
+        </button>
+        <button class="btn-undo-side" onclick="handleUndoClick()" title="ลดแต้ม 1 คะแนน">−1</button>
+      </div>
+    </section>
+
+    <!-- Team B (Right / Red) -->
+    <section class="team-card side-b" id="cardTeamB">
+      <!-- Player Avatars -->
+      <div class="avatar-wrapper" id="podB">
+        <div class="avatar-circle-phone doubles" id="circleB1">
+          <img id="imgB1" src="" alt="Player B1" onerror="handleImgError(this, 'B')">
+        </div>
+        <div class="avatar-circle-phone doubles" id="circleB2">
+          <img id="imgB2" src="" alt="Player B2" onerror="handleImgError(this, 'B')">
+        </div>
+      </div>
+
+      <!-- Team Names -->
+      <div class="team-meta-box">
+        <div class="phone-team-name" id="txtTeamB">TEAM B</div>
+        <div class="phone-player-names" id="txtPlayerB">PLAYER B1</div>
+      </div>
+
+      <!-- Touch Score Button (+1) -->
+      <div class="score-touch-area" id="btnTouchB" onclick="handleScoreClick('R')">
+        <div class="score-number" id="txtScoreB">0</div>
+        <div class="score-btn-hint">+1 POINT</div>
+      </div>
+
+      <!-- Sub Actions (Serve & Undo) -->
+      <div class="team-sub-actions">
+        <button class="btn-serve" id="btnServeB" onclick="handleServeClick('R')">
+          <span>🏸</span> <span id="lblServeB">เสิร์ฟ</span>
+        </button>
+        <button class="btn-undo-side" onclick="handleUndoClick()" title="ลดแต้ม 1 คะแนน">−1</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 4. Global Bottom Controls -->
+  <footer class="bottom-actions-bar">
+    <button class="btn-global btn-switch-court" onclick="handleSwitchSideClick()">
+      <span>🔄</span> สลับฝั่งสนาม
+    </button>
+    <button class="btn-global btn-global-undo" onclick="handleUndoClick()">
+      <span>↩️</span> ย้อนกลับแต้ม (-1)
+    </button>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div class="toast-popup" id="phoneToast">คะแนนอัปเดตเรียบร้อย</div>
+
+  <script>
+    /* =========================================================================
+       BADMINTON SCOREPHONE CONTROLLER
+       - Ultra-responsive mobile scorepad for court umpires
+       - Zero-latency optimistic UI with automatic sync
+       ========================================================================= */
+
+    const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec";
+
+    // Fallback SVG avatars
+    const DEFAULT_AVATAR_A = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2308192e'/%3E%3Ccircle cx='50' cy='38' r='20' fill='%2338bdf8'/%3E%3Cpath d='M20,86 C20,68 34,58 50,58 C66,58 80,68 80,86 Z' fill='%230284c7'/%3E%3C/svg%3E";
+    const DEFAULT_AVATAR_B = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23280811'/%3E%3Ccircle cx='50' cy='38' r='20' fill='%23f87171'/%3E%3Cpath d='M20,86 C20,68 34,58 50,58 C66,58 80,68 80,86 Z' fill='%23dc2626'/%3E%3C/svg%3E";
+
+    // Query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const apiUrl = urlParams.get('api') || localStorage.getItem('badminton_api_url') || DEFAULT_API_URL;
+
+    // State
+    let liveData = null;
+    let localMutationVersion = 0;
+    let lastMutationTime = 0;
+    let localHistory = [];
+    let consecutiveErrors = 0;
+
+    // Cross-tab Real-time BroadcastChannel (0ms latency on same device)
+    let liveChannel = null;
+    try {
+      liveChannel = new BroadcastChannel('badminton_live_sync');
+      liveChannel.onmessage = function(ev) {
+        if (ev.data && ev.data.type === 'LIVE_UPDATE' && ev.data.data) {
+          // If no local optimistic mutation in progress within last 1200ms, update directly
+          if (Date.now() - lastMutationTime > 1200) {
+            renderPhoneUI(ev.data.data);
+          }
+        }
+      };
+    } catch(e) {}
+
+    function broadcastLive(d) {
+      if (liveChannel && d) {
+        try {
+          liveChannel.postMessage({ type: 'LIVE_UPDATE', data: d });
+        } catch(e) {}
+      }
+    }
+
+    function triggerHaptic() {
+      if (navigator.vibrate) {
+        try { navigator.vibrate(35); } catch(e) {}
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('phoneToast');
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(function() {
+        toast.classList.remove('show');
+      }, 1500);
+    }
+
+    function saveLocalSnapshot() {
+      if (!liveData) return;
+      localHistory.push(JSON.parse(JSON.stringify(liveData)));
+      if (localHistory.length > 50) localHistory.shift();
+    }
+
+    // Safe Image Error Handler
+    function handleImgError(img, side) {
+      img.onerror = null;
+      img.src = (side === 'A') ? DEFAULT_AVATAR_A : DEFAULT_AVATAR_B;
+    }
+
+    /* -------------------------------------------
+       API CALL WRAPPER (GET / POST)
+    ------------------------------------------- */
+    function apiCall(action, payload) {
+      if (!apiUrl) return Promise.reject("Missing API URL");
+
+      payload = payload || {};
+      payload.action = action;
+
+      // GET for reads, POST for mutations
+      if (action === 'getLive') {
+        const getUrl = apiUrl + (apiUrl.includes('?') ? '&' : '?') + 'action=getLive&_t=' + Date.now();
+        return fetch(getUrl)
+          .then(res => res.json())
+          .then(json => {
+            if (json.success && json.data) {
+              setOnlineStatus(true);
+              return json.data;
+            }
+            throw new Error(json.error || "Bad response");
+          })
+          .catch(err => {
+            setOnlineStatus(false);
+            throw err;
+          });
+      }
+
+      // Mutation: POST
+      return fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(json => {
+          if (json.success && json.data) {
+            setOnlineStatus(true);
+            return json.data;
+          }
+          throw new Error(json.error || "Mutation failed");
+        })
+        .catch(err => {
+          setOnlineStatus(false);
+          throw err;
+        });
+    }
+
+    function setOnlineStatus(isOnline) {
+      const dot = document.getElementById('phoneSyncDot');
+      const txt = document.getElementById('phoneSyncText');
+      if (!dot || !txt) return;
+
+      if (isOnline) {
+        consecutiveErrors = 0;
+        dot.className = 'sync-dot';
+        txt.textContent = 'ออนไลน์';
+      } else {
+        consecutiveErrors++;
+        if (consecutiveErrors >= 3) {
+          dot.className = 'sync-dot offline';
+          txt.textContent = 'ออฟไลน์';
+        }
+      }
+    }
+
+    /* -------------------------------------------
+       RENDER SCOREPHONE UI
+    ------------------------------------------- */
+    function renderPhoneUI(d) {
+      if (!d) return;
+      liveData = d;
+
+      // 1. Header Information
+      const courtStr = d.court || 'COURT 1';
+      const mId = d.match_id ? ('MATCH ' + d.match_id) : 'MATCH';
+      document.getElementById('txtCourtMatch').textContent = courtStr + ' • ' + mId;
+
+      const pts = Number(d.points_mode) === 15 ? 15 : 21;
+      const modeStr = (d.match_mode === 'doubles' ? 'ประเภทคู่' : 'ประเภทเดี่ยว');
+      const catStr = d.match_type ? (d.match_type + ' • ') : '';
+      document.getElementById('txtMatchCategory').textContent = catStr + modeStr + ' • ' + pts + ' แต้ม';
+
+      // 2. Set & Score Summary
+      const activeSet = Number(d.active_set) || 1;
+      document.getElementById('txtActiveSetPill').textContent = 'เซต ' + activeSet;
+
+      let setScores = 'เซต 1: ' + (d.s1_a || 0) + '-' + (d.s1_b || 0);
+      if (activeSet >= 2 || (d.s2_a > 0 || d.s2_b > 0)) {
+        setScores += ' | เซต 2: ' + (d.s2_a || 0) + '-' + (d.s2_b || 0);
+      }
+      if (activeSet === 3 || (d.s3_a > 0 || d.s3_b > 0)) {
+        setScores += ' | เซต 3: ' + (d.s3_a || 0) + '-' + (d.s3_b || 0);
+      }
+      document.getElementById('txtSetSummaryScores').textContent = setScores;
+
+      // 3. Status Badge (Game Point / Match Point)
+      const badge = document.getElementById('txtLiveStatusBadge');
+      if (d.status_banner && d.status_banner !== 'NONE') {
+        badge.textContent = d.status_banner;
+        badge.classList.add('active');
+      } else {
+        badge.classList.remove('active');
+      }
+
+      // 4. Team Names & Players
+      document.getElementById('txtTeamA').textContent = d.team_a_name || 'TEAM A';
+      document.getElementById('txtTeamB').textContent = d.team_b_name || 'TEAM B';
+
+      let pA = d.player_a1 || '';
+      if (d.match_mode === 'doubles' && d.player_a2) pA += ' / ' + d.player_a2;
+      document.getElementById('txtPlayerA').textContent = pA || '-';
+
+      let pB = d.player_b1 || '';
+      if (d.match_mode === 'doubles' && d.player_b2) pB += ' / ' + d.player_b2;
+      document.getElementById('txtPlayerB').textContent = pB || '-';
+
+      // 5. Scores
+      document.getElementById('txtScoreA').textContent = d.score_a;
+      document.getElementById('txtScoreB').textContent = d.score_b;
+
+      // 6. Serving Indicators
+      const cardA = document.getElementById('cardTeamA');
+      const cardB = document.getElementById('cardTeamB');
+      const btnServeA = document.getElementById('btnServeA');
+      const btnServeB = document.getElementById('btnServeB');
+
+      if (d.serving_side === 'L') {
+        cardA.classList.add('is-serving');
+        cardB.classList.remove('is-serving');
+        btnServeA.classList.add('active');
+        btnServeB.classList.remove('active');
+        document.getElementById('lblServeA').textContent = 'กำลังเสิร์ฟ';
+        document.getElementById('lblServeB').textContent = 'รอรับ';
+      } else if (d.serving_side === 'R') {
+        cardB.classList.add('is-serving');
+        cardA.classList.remove('is-serving');
+        btnServeB.classList.add('active');
+        btnServeA.classList.remove('active');
+        document.getElementById('lblServeB').textContent = 'กำลังเสิร์ฟ';
+        document.getElementById('lblServeA').textContent = 'รอรับ';
+      } else {
+        cardA.classList.remove('is-serving');
+        cardB.classList.remove('is-serving');
+        btnServeA.classList.remove('active');
+        btnServeB.classList.remove('active');
+        document.getElementById('lblServeA').textContent = 'เสิร์ฟ';
+        document.getElementById('lblServeB').textContent = 'เสิร์ฟ';
+      }
+
+      // 7. Player Photos (Avatars)
+      const isDoubles = (d.match_mode === 'doubles');
+      const matchIdClean = (d.match_id || '').toString().trim();
+
+      // Team A Photos
+      const cA1 = document.getElementById('circleA1');
+      const cA2 = document.getElementById('circleA2');
+      const imgA1 = document.getElementById('imgA1');
+      const imgA2 = document.getElementById('imgA2');
+
+      let photoA1 = d.photo_a1 || '';
+      let photoA2 = d.photo_a2 || '';
+      let photoA = d.photo_a || '';
+
+      if (!photoA1 && isDoubles && matchIdClean) photoA1 = 'Badminton_Images/' + encodeURIComponent(matchIdClean) + '_A1.jpg';
+      if (!photoA2 && isDoubles && matchIdClean) photoA2 = 'Badminton_Images/' + encodeURIComponent(matchIdClean) + '_A2.jpg';
+      if (!photoA && !photoA1 && matchIdClean) photoA = 'Badminton_Images/' + encodeURIComponent(matchIdClean) + '_A.jpg';
+
+      if (isDoubles) {
+        cA1.className = 'avatar-circle-phone doubles';
+        cA2.className = 'avatar-circle-phone doubles';
+        cA2.style.display = 'block';
+        imgA1.src = photoA1 || photoA || DEFAULT_AVATAR_A;
+        imgA2.src = photoA2 || DEFAULT_AVATAR_A;
+      } else {
+        cA1.className = 'avatar-circle-phone singles';
+        cA2.style.display = 'none';
+        imgA1.src = photoA1 || photoA || DEFAULT_AVATAR_A;
+      }
+
+      // Team B Photos
+      const cB1 = document.getElementById('circleB1');
+      const cB2 = document.getElementById('circleB2');
+      const imgB1 = document.getElementById('imgB1');
+      const imgB2 = document.getElementById('imgB2');
+
+      let photoB1 = d.photo_b1 || '';
+      let photoB2 = d.photo_b2 || '';
+      let photoB = d.photo_b || '';
+
+      if (!photoB1 && isDoubles && matchIdClean) photoB1 = 'Badminton_Images/' + encodeURIComponent(matchIdClean) + '_B1.jpg';
+      if (!photoB2 && isDoubles && matchIdClean) photoB2 = 'Badminton_Images/' + encodeURIComponent(matchIdClean) + '_B2.jpg';
+      if (!photoB && !photoB1 && matchIdClean) photoB = 'Badminton_Images/' + encodeURIComponent(matchIdClean) + '_B.jpg';
+
+      if (isDoubles) {
+        cB1.className = 'avatar-circle-phone doubles';
+        cB2.className = 'avatar-circle-phone doubles';
+        cB2.style.display = 'block';
+        imgB1.src = photoB1 || photoB || DEFAULT_AVATAR_B;
+        imgB2.src = photoB2 || DEFAULT_AVATAR_B;
+      } else {
+        cB1.className = 'avatar-circle-phone singles';
+        cB2.style.display = 'none';
+        imgB1.src = photoB1 || photoB || DEFAULT_AVATAR_B;
+      }
+
+      broadcastLive(liveData);
+    }
+
+    /* -------------------------------------------
+       TOUCH CONTROLLER ACTIONS (0ms OPTIMISTIC UI)
+    ------------------------------------------- */
+    function handleScoreClick(side) {
+      if (!liveData) return;
+      triggerHaptic();
+      saveLocalSnapshot();
+
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      if (side === 'L') {
+        liveData.score_a++;
+        liveData.serving_side = 'L';
+      } else {
+        liveData.score_b++;
+        liveData.serving_side = 'R';
+      }
+
+      renderPhoneUI(liveData);
+
+      const curVer = localMutationVersion;
+      apiCall('addPoint', { side: side })
+        .then(d => {
+          if (localMutationVersion === curVer) renderPhoneUI(d);
+        })
+        .catch(() => {});
+    }
+
+    function handleUndoClick() {
+      if (!liveData) return;
+      triggerHaptic();
+      saveLocalSnapshot();
+
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      if (localHistory.length > 0) {
+        const prev = localHistory.pop();
+        liveData = prev;
+        renderPhoneUI(liveData);
+        showToast('↩️ ย้อนคะแนนสำเร็จ');
+      }
+
+      const curVer = localMutationVersion;
+      apiCall('undoPoint')
+        .then(d => {
+          if (localMutationVersion === curVer) renderPhoneUI(d);
+        })
+        .catch(() => {});
+    }
+
+    function handleServeClick(side) {
+      if (!liveData) return;
+      triggerHaptic();
+      saveLocalSnapshot();
+
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      liveData.serving_side = side;
+      renderPhoneUI(liveData);
+      showToast(side === 'L' ? '🏸 ฝั่งซ้ายได้เสิร์ฟ' : '🏸 ฝั่งขวาได้เสิร์ฟ');
+
+      const curVer = localMutationVersion;
+      apiCall('setServe', { side: side })
+        .then(d => {
+          if (localMutationVersion === curVer) renderPhoneUI(d);
+        })
+        .catch(() => {});
+    }
+
+    function handleSwitchSideClick() {
+      if (!liveData) return;
+      if (!confirm('ต้องการสลับฝั่งสนามและคะแนนหรือไม่?')) return;
+
+      triggerHaptic();
+      saveLocalSnapshot();
+
+      localMutationVersion++;
+      lastMutationTime = Date.now();
+
+      // Swap locally 0ms
+      const tmpTeam = liveData.team_a_name;
+      liveData.team_a_name = liveData.team_b_name;
+      liveData.team_b_name = tmpTeam;
+
+      const tmpP1 = liveData.player_a1;
+      liveData.player_a1 = liveData.player_b1;
+      liveData.player_b1 = tmpP1;
+
+      const tmpP2 = liveData.player_a2;
+      liveData.player_a2 = liveData.player_b2;
+      liveData.player_b2 = tmpP2;
+
+      const tmpScore = liveData.score_a;
+      liveData.score_a = liveData.score_b;
+      liveData.score_b = tmpScore;
+
+      const tmpPhA = liveData.photo_a;
+      liveData.photo_a = liveData.photo_b;
+      liveData.photo_b = tmpPhA;
+
+      const tmpPhA1 = liveData.photo_a1;
+      liveData.photo_a1 = liveData.photo_b1;
+      liveData.photo_b1 = tmpPhA1;
+
+      const tmpPhA2 = liveData.photo_a2;
+      liveData.photo_a2 = liveData.photo_b2;
+      liveData.photo_b2 = tmpPhA2;
+
+      if (liveData.serving_side === 'L') liveData.serving_side = 'R';
+      else if (liveData.serving_side === 'R') liveData.serving_side = 'L';
+
+      renderPhoneUI(liveData);
+      showToast('🔄 สลับฝั่งสนามเรียบร้อย');
+
+      const curVer = localMutationVersion;
+      apiCall('switchSide')
+        .then(d => {
+          if (localMutationVersion === curVer) renderPhoneUI(d);
+        })
+        .catch(() => {});
+    }
+
+    /* -------------------------------------------
+       INITIALIZATION & POLLING
+    ------------------------------------------- */
+    function fetchLive() {
+      // Skip polling if a local touch action happened recently
+      if (Date.now() - lastMutationTime < 1400) return;
+
+      apiCall('getLive')
+        .then(d => {
+          if (Date.now() - lastMutationTime >= 1400) {
+            renderPhoneUI(d);
+          }
+        })
+        .catch(() => {});
+    }
+
+    // Initial load
+    fetchLive();
+    // Fast mobile polling (1.5 seconds)
+    setInterval(fetchLive, 1500);
+
+  </script>
+</body>
+
+</html>
