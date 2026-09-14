@@ -29,6 +29,7 @@ function onOpen() {
     .addSeparator()
     .addItem('📁 ตั้งค่าโฟลเดอร์รูป Drive (Match ID + A,B)', 'promptSetDriveFolder')
     .addItem('🔄 ซิงค์รูปภาพ Drive ทันที (Refresh Photos)', 'refreshDrivePhotosFromMenu')
+    .addItem('🔍 ตรวจสอบการเชื่อมต่อรูปภาพ Drive', 'testDrivePhotosMenu')
     .addToUi();
 }
 
@@ -210,11 +211,15 @@ function getDriveFolderPhotosMap(folderId) {
       // แบบ normalized ไม่มีสัญลักษณ์ เช่น 194A
       var normalized = baseName.replace(/[^A-Z0-9]/g, "");
       map[normalized] = url;
+      // เก็บแบบมีนามสกุลด้วยเผื่อตรง
+      map[name.toUpperCase().trim()] = url;
     }
-    // แคชไว้ 30 นาที (1800 วินาที)
-    try {
-      cache.put("drive_photos_map_" + folderId, JSON.stringify(map), 1800);
-    } catch(ce) {}
+    // หากพบรูปภาพ ให้แคชไว้ 30 นาที (1800 วินาที)
+    if (Object.keys(map).length > 0) {
+      try {
+        cache.put("drive_photos_map_" + folderId, JSON.stringify(map), 1800);
+      } catch(ce) {}
+    }
   } catch(err) {
     Logger.log("Error getDriveFolderPhotosMap: " + err);
   }
@@ -257,6 +262,50 @@ function refreshDrivePhotosFromMenu() {
   var map = getDriveFolderPhotosMap(folderId);
   var total = Object.keys(map).length;
   SpreadsheetApp.getUi().alert("✅ ซิงค์รูปภาพจาก Google Drive สำเร็จ!\nพบไฟล์รูปภาพทั้งหมด: " + total + " รูป");
+}
+
+function testDrivePhotosMenu() {
+  var ui = SpreadsheetApp.getUi();
+  var folderId = PropertiesService.getScriptProperties().getProperty("drive_folder_id") || DEFAULT_DRIVE_FOLDER_ID || "";
+  if (!folderId) {
+    ui.alert("⚠️ ยังไม่ได้ตั้งค่าโฟลเดอร์ Google Drive");
+    return;
+  }
+  try {
+    var folder = DriveApp.getFolderById(folderId);
+    var files = folder.getFiles();
+    var names = [];
+    while (files.hasNext()) {
+      names.push(files.next().getName());
+    }
+    if (names.length > 0) {
+      ui.alert("✅ เชื่อมต่อ Drive สำเร็จ 100%!\n📁 ชื่อโฟลเดอร์: " + folder.getName() + "\n🖼️ พบรูปภาพ: " + names.join(", "));
+    } else {
+      ui.alert("⚠️ เข้าถึงโฟลเดอร์ได้ แต่ยังไม่พบไฟล์รูปภาพข้างในครับ\nชื่อโฟลเดอร์: " + folder.getName());
+    }
+  } catch(e) {
+    ui.alert("❌ เข้าถึง Google Drive ไม่สำเร็จ:\n" + e.toString() + "\n\n💡 คำแนะนำ: กรุณาคลิกขวาที่โฟลเดอร์ใน Drive แล้วเปิดแชร์เป็น 'ทุกคนที่มีลิงก์มีสิทธิ์ดู' และกด Review permissions หากมีแจ้งเตือนครับ");
+  }
+}
+
+// ฟังก์ชันสำหรับกด Run ใน Apps Script Editor เพื่อทดสอบและยอมรับสิทธิ์ Drive ทันที
+function testDrivePhotos() {
+  var folderId = PropertiesService.getScriptProperties().getProperty("drive_folder_id") || DEFAULT_DRIVE_FOLDER_ID || "";
+  Logger.log("Testing folder ID: " + folderId);
+  try {
+    var folder = DriveApp.getFolderById(folderId);
+    Logger.log("✅ โฟลเดอร์ชื่อ: " + folder.getName());
+    var files = folder.getFiles();
+    var count = 0;
+    while (files.hasNext()) {
+      count++;
+      var f = files.next();
+      Logger.log("รูปที่ " + count + ": " + f.getName() + " (ID: " + f.getId() + ")");
+    }
+    Logger.log("รวมพบไฟล์: " + count + " ไฟล์");
+  } catch(e) {
+    Logger.log("❌ Error: " + e.toString());
+  }
 }
 
 // -------------------------------------------------------------
@@ -314,6 +363,28 @@ function handleRequest(e) {
         error: err.toString()
       })).setMimeType(ContentService.MimeType.JSON);
     }
+  }
+
+  if (action === "testDrive") {
+    var fId = extractDriveFolderId(params.folder_id || PropertiesService.getScriptProperties().getProperty("drive_folder_id") || DEFAULT_DRIVE_FOLDER_ID);
+    var res = { folder_id: fId };
+    try {
+      var folder = DriveApp.getFolderById(fId);
+      res.folder_name = folder.getName();
+      var files = folder.getFiles();
+      var list = [];
+      while (files.hasNext()) {
+        var f = files.next();
+        list.push({ name: f.getName(), id: f.getId() });
+      }
+      res.success = true;
+      res.total = list.length;
+      res.files = list;
+    } catch(err) {
+      res.success = false;
+      res.error = err.toString();
+    }
+    return ContentService.createTextOutput(JSON.stringify(res)).setMimeType(ContentService.MimeType.JSON);
   }
 
   if (action === "getSchedule") {
@@ -529,8 +600,8 @@ function getLiveMatchData(sheet) {
   var mId = (liveData.match_id || "").toString().trim().toUpperCase();
   var mIdClean = mId.replace(/[^A-Z0-9]/g, "");
 
-  liveData.photo_a = photosMap[mId + "_A"] || photosMap[mIdClean + "A"] || "";
-  liveData.photo_b = photosMap[mId + "_B"] || photosMap[mIdClean + "B"] || "";
+  liveData.photo_a = photosMap[mId + "_A"] || photosMap[mIdClean + "A"] || photosMap[mId + "_A.JPG"] || photosMap[mId + "_A.PNG"] || "";
+  liveData.photo_b = photosMap[mId + "_B"] || photosMap[mIdClean + "B"] || photosMap[mId + "_B.JPG"] || photosMap[mId + "_B.PNG"] || "";
   liveData.photo_a1 = photosMap[mId + "_A1"] || photosMap[mIdClean + "A1"] || "";
   liveData.photo_a2 = photosMap[mId + "_A2"] || photosMap[mIdClean + "A2"] || "";
   liveData.photo_b1 = photosMap[mId + "_B1"] || photosMap[mIdClean + "B1"] || "";
@@ -538,7 +609,9 @@ function getLiveMatchData(sheet) {
   liveData.drive_folder_id = folderId;
 
   try {
-    CacheService.getScriptCache().put("live_match_data", JSON.stringify(liveData), 21600);
+    var hasPhotos = !!(liveData.photo_a || liveData.photo_b || liveData.photo_a1);
+    // ถ้าพบรูปภาพ แคชไว้ 30 นาที แต่ถ้ายังไม่พบรูป แคชแค่ 10 วินาที เพื่อให้รูปใหม่ขึ้นทันที
+    CacheService.getScriptCache().put("live_match_data", JSON.stringify(liveData), hasPhotos ? 1800 : 10);
   } catch(e) {}
 
   return liveData;
