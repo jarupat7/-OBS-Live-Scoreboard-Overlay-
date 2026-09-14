@@ -570,6 +570,15 @@
 
     window.handleAvatarError = function (img, side) {
       img.onerror = null;
+      var curSrc = img.src || '';
+      if (curSrc.indexOf('.jpg') !== -1 || curSrc.indexOf('.jpeg') !== -1) {
+        img.src = curSrc.replace(/\.jpe?g/i, '.png');
+        img.onerror = function() {
+          img.onerror = null;
+          img.src = (side === 'A') ? DEFAULT_AVATAR_A : DEFAULT_AVATAR_B;
+        };
+        return;
+      }
       img.src = (side === 'A') ? DEFAULT_AVATAR_A : DEFAULT_AVATAR_B;
     };
 
@@ -672,9 +681,9 @@
         var photoA1 = d.photo_a1 || "";
         var photoA2 = d.photo_a2 || "";
 
-        // Fallback ไปโฟลเดอร์เครื่อง players/
+        // Fallback ไปโฟลเดอร์เครื่อง Badminton_Images/
         if (!photoA && !photoA1 && mId) {
-          photoA = 'players/' + encodeURIComponent(mId) + '_A.png';
+          photoA = 'Badminton_Images/' + encodeURIComponent(mId) + '_A.jpg';
         }
 
         var circleA1 = document.getElementById('circleA1');
@@ -700,7 +709,7 @@
         var photoB2 = d.photo_b2 || "";
 
         if (!photoB && !photoB1 && mId) {
-          photoB = 'players/' + encodeURIComponent(mId) + '_B.png';
+          photoB = 'Badminton_Images/' + encodeURIComponent(mId) + '_B.jpg';
         }
 
         var circleB1 = document.getElementById('circleB1');
