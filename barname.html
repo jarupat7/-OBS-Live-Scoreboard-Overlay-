@@ -561,6 +561,7 @@
     // ⚙️ ฟิก Google Apps Script Web App URL อัตโนมัติ (ไม่ต้องคอยพิมพ์ใหม่)
     // =========================================================================
     const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec";
+    const DEFAULT_DRIVE_FOLDER = "https://drive.google.com/drive/folders/1G2TfyeJhJy0eGiBSWmlMhehG4L2J_Bug?usp=drive_link";
 
     // รูปเงามาตรฐานเมื่อไม่มีรูปภาพ
     const DEFAULT_AVATAR_A = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="bgA" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="%230e3a61"/><stop offset="100%" stop-color="%23041221"/></radialGradient></defs><circle cx="50" cy="50" r="50" fill="url(%23bgA)"/><path d="M50 22a13 13 0 1 0 0 26 13 13 0 0 0 0-26zm0 32c-16.5 0-30 9.5-30 22v10h60V76c0-12.5-13.5-22-30-22z" fill="%2338bdf8" opacity="0.85"/><circle cx="72" cy="28" r="6" fill="%23facc15"/><line x1="68" y1="32" x2="60" y2="40" stroke="%23facc15" stroke-width="2.5" stroke-linecap="round"/></svg>';
@@ -575,7 +576,7 @@
     (function () {
       var urlParams = new URLSearchParams(window.location.search);
       var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
-      var driveFolder = localStorage.getItem('badminton_drive_folder') || '';
+      var driveFolder = localStorage.getItem('badminton_drive_folder') || DEFAULT_DRIVE_FOLDER;
 
       // คีย์ลัด Alt + S สำหรับเปลี่ยน URL
       window.addEventListener('keydown', function (e) {

@@ -171,7 +171,7 @@ function addSampleData() {
 // -------------------------------------------------------------
 // Google Drive Match Photos Helper (จับคู่รูปภาพด้วย Match ID + A, B)
 // -------------------------------------------------------------
-var DEFAULT_DRIVE_FOLDER_ID = "1G2TfyeJhJyOeGiBSWmlMhehG4L2J_Bug"; // โฟลเดอร์ Google Drive รูปภาพนักกีฬา
+var DEFAULT_DRIVE_FOLDER_ID = "1G2TfyeJhJy0eGiBSWmlMhehG4L2J_Bug"; // โฟลเดอร์ Google Drive รูปภาพนักกีฬา
 
 function extractDriveFolderId(input) {
   if (!input) return "";

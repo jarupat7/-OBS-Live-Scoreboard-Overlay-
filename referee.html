@@ -1005,6 +1005,7 @@
     // ⚙️ ฟิก Google Apps Script Web App URL ไว้ที่นี่ได้เลย (ไม่ต้องคอยพิมพ์ใหม่)
     // =========================================================================
     const DEFAULT_API_URL = "https://script.google.com/macros/s/AKfycby_nIVR376FIfVYkPS7xn4sdYQhMm8mgSVp7HamaPl36XAW9NjAEbBmggSER5B1VTsh/exec"; // ใส่ URL เช่น "https://script.google.com/macros/s/AKfycb.../exec"
+    const DEFAULT_DRIVE_FOLDER = "https://drive.google.com/drive/folders/1G2TfyeJhJy0eGiBSWmlMhehG4L2J_Bug?usp=drive_link";
 
     var urlParams = new URLSearchParams(window.location.search);
     var apiUrl = DEFAULT_API_URL || urlParams.get('api') || localStorage.getItem('badminton_api_url') || '';
@@ -1067,9 +1068,9 @@
         if (liveData) {
           document.getElementById('settingTourName').value = liveData.tournament_name || '';
           document.getElementById('settingTourLogo').value = liveData.tournament_logo || '';
-          document.getElementById('settingDriveFolder').value = liveData.drive_folder_id || localStorage.getItem('badminton_drive_folder') || '';
+          document.getElementById('settingDriveFolder').value = liveData.drive_folder_id || localStorage.getItem('badminton_drive_folder') || DEFAULT_DRIVE_FOLDER;
         } else {
-          document.getElementById('settingDriveFolder').value = localStorage.getItem('badminton_drive_folder') || '';
+          document.getElementById('settingDriveFolder').value = localStorage.getItem('badminton_drive_folder') || DEFAULT_DRIVE_FOLDER;
         }
       }
     }
